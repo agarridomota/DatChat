@@ -402,6 +402,7 @@
             font-size: 0.95rem;
             word-wrap: break-word;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            user-select: text; /* Permite seleccionar texto dentro del mensaje */
         }
 
         .message.user {
@@ -417,6 +418,41 @@
             align-self: flex-start;
             border-top-left-radius: 0;
             border: 1px solid var(--other-msg-border);
+        }
+
+        /* Barra flotante de formato de texto seleccionado */
+        #textFormatToolbar {
+            display: none;
+            position: absolute;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 5px;
+            z-index: 1000;
+            gap: 5px;
+            align-items: center;
+        }
+        #textFormatToolbar button {
+            background: none;
+            border: 1px solid var(--sidebar-border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+        #textFormatToolbar button:hover {
+            background-color: var(--sidebar-border);
+        }
+        #textFormatToolbar input[type="color"] {
+            border: none;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            background: none;
+            padding: 0;
         }
 
         .chat-input-area {
@@ -602,10 +638,10 @@
                     <select id="savedContactsSelect">
                         <option value="">-- Elige un contacto guardado --</option>
                     </select>
-                    </div>
-                    
-                    <div class="profile-input-group">
-                        <label>O ID del amigo:</label>
+                </div>
+                
+                <div class="profile-input-group">
+                    <label>O ID del amigo:</label>
                     <input type="text" id="peerIdInput" placeholder="Pega el ID aquí...">
                 </div>
                 <button class="theme-btn" id="connectBtn"
@@ -650,6 +686,13 @@
             </div>
             
             <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;" id="chatAreaWrapper">
+                <!-- Barra flotante para dar formato al texto seleccionado -->
+                <div id="textFormatToolbar">
+                    <button id="fmtBold" title="Negrita"><b>B</b></button>
+                    <button id="fmtItalic" title="Cursiva"><i>I</i></button>
+                    <input type="color" id="fmtColor" title="Color de texto" value="#ff0000">
+                </div>
+
                 <div class="no-chat-selected" id="noChatSelected" data-i18n="welcomeText">
                     No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para añadir o unirte a una conversación o crear un
                     grupo.
@@ -673,7 +716,7 @@
             let currentLang = "es";
             let activeConnections = {};
             let activePeerId = null;
-            let savedContacts = {}; // Agenda de contactos guardados
+            let savedContacts = {};
 
         const avatarBtn = document.getElementById('avatarBtn');
             const avatarMenuBtn = document.getElementById('avatarMenuBtn');
@@ -703,6 +746,11 @@
             const messageInput = document.getElementById('messageInput');
             const profileNameInput = document.getElementById('profileNameInput');
             const profileImageInput = document.getElementById('profileImageInput');
+
+            const textFormatToolbar = document.getElementById('textFormatToolbar');
+            const fmtBold = document.getElementById('fmtBold');
+            const fmtItalic = document.getElementById('fmtItalic');
+            const fmtColor = document.getElementById('fmtColor');
 
             const translations = {
             es: { profileTitle: "Perfil y Tu ID", nameLabel: "Tu Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversaciones", renameBtn: "Cambiar Nombre", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para añadir o unirte a una conversación o grupo.", inputPlaceholder: "Escribe un mensaje...", selectPrompt: "Selecciona un chat" },
@@ -753,7 +801,6 @@
             let savedChats = localStorage.getItem('multi_chat_history');
             let storedContacts = localStorage.getItem('multi_chat_contacts');
 
-            // Comprobar si viene un ID vinculado por URL
             const urlParams = new URLSearchParams(window.location.search);
             const linkParam = urlParams.get('link');
             if (linkParam) {
@@ -804,7 +851,6 @@
                             lastMessage: parsed[id].lastMessage,
                             messages: parsed[id].messages
                         };
-                        // Registrar en agenda si es chat individual
                         if (!parsed[id].isGroup) {
                             savedContacts[id] = parsed[id].customName || parsed[id].name;
                         }
@@ -842,10 +888,10 @@
                 for (let id in savedContacts) {
                     let opt = document.createElement('option');
                     opt.value = id;
-                    opt.textContent = `${savedContacts[id]} (${id.substring(0, 6)}...)`;
-                    savedContactsSelect.appendChild(opt);
-                }
+                opt.textContent = `${savedContacts[id]} (${id.substring(0, 6)}...)`;
+                savedContactsSelect.appendChild(opt);
             }
+        }
 
             savedContactsSelect.addEventListener('change', () => {
                 if (savedContactsSelect.value) {
@@ -912,12 +958,12 @@
             conn.on('data', (data) => {
                 if (data.groupId && activeConnections[data.groupId]) {
                     let group = activeConnections[data.groupId];
-                    group.messages.push({ sender: 'other', text: data.text, name: data.name });
-                    group.lastMessage = `${data.name}: ${data.text}`;
+                    group.messages.push({ sender: 'other', html: data.html, name: data.name });
+                    group.lastMessage = `${data.name}: [Mensaje formateado]`;
                     saveHistoryToStorage();
                     updateChatListUI();
                     if (activePeerId === data.groupId) {
-                        appendMessageToDOM('other', data.text, data.name);
+                        appendMessageHTMLToDOM('other', data.html, data.name);
                     }
                     return;
                 }
@@ -926,13 +972,13 @@
                     if (data.name && !activeConnections[remoteId].customName) {
                         activeConnections[remoteId].name = data.name;
                     }
-                    activeConnections[remoteId].messages.push({ sender: 'other', text: data.text, name: data.name });
-                    activeConnections[remoteId].lastMessage = data.text;
-
+                    activeConnections[remoteId].messages.push({ sender: 'other', html: data.html, name: data.name });
+                    activeConnections[remoteId].lastMessage = "[Mensaje formateado]";
+                    
                     saveHistoryToStorage();
                     updateChatListUI();
                     if (activePeerId === remoteId) {
-                        appendMessageToDOM('other', data.text, data.name);
+                        appendMessageHTMLToDOM('other', data.html, data.name);
                     }
                 }
             });
@@ -993,6 +1039,7 @@
                 renameChatBtn.style.display = 'none';
                 activeChatTitleText.textContent = translations[currentLang].selectPrompt;
                 messagesContainerWrapper.innerHTML = '';
+                textFormatToolbar.style.display = 'none';
             }
             updateChatListUI();
         }
@@ -1013,7 +1060,8 @@
 
             backToChatsBtn.addEventListener('click', () => {
                 appContainer.classList.remove('chat-active');
-            });
+            textFormatToolbar.style.display = 'none';
+        });
 
             renameChatBtn.addEventListener('click', () => {
                 if (!activePeerId) return;
@@ -1039,7 +1087,12 @@
             chatData.messages.forEach(msg => {
                 let div = document.createElement('div');
                 div.className = `message ${msg.sender}`;
-                div.textContent = msg.sender === 'other' ? `${msg.name || 'Amigo'}: ${msg.text}` : msg.text;
+                if (msg.html) {
+                    div.innerHTML = msg.sender === 'other' ? `<b>${msg.name || 'Amigo'}:</b> ${msg.html}` : msg.html;
+                } else {
+                // Compatibilidad con historiales antiguos basados en texto plano
+                    div.textContent = msg.sender === 'other' ? `${msg.name || 'Amigo'}: ${msg.text}` : msg.text;
+                }
                 container.appendChild(div);
             });
 
@@ -1047,16 +1100,114 @@
             container.scrollTop = container.scrollHeight;
         }
 
-            function appendMessageToDOM(sender, text, name) {
+            function appendMessageHTMLToDOM(sender, html, name) {
                 let container = document.getElementById(`box_${activePeerId}`);
                 if (container) {
                     let div = document.createElement('div');
                     div.className = `message ${sender}`;
-                    div.textContent = sender === 'other' ? `${name || 'Amigo'}: ${text}` : text;
-                    container.appendChild(div);
-                    container.scrollTop = container.scrollHeight;
-                }
+                div.innerHTML = sender === 'other' ? `<b>${name || 'Amigo'}:</b> ${html}` : html;
+                container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
             }
+            }
+
+            // Selección de texto en mensajes para barra flotante de formato
+            document.addEventListener('selectionchange', () => {
+                const selection = window.getSelection();
+                if (!selection.isCollapsed && activePeerId) {
+                    const anchorNode = selection.anchorNode;
+                    const messageEl = anchorNode ? anchorNode.parentElement.closest('.message') : null;
+
+                    // Permitir formatear solo en mensajes propios para evitar edición externa arbitraria en tiempo real
+                    if (messageEl && messageEl.classList.contains('user')) {
+                        const range = selection.getRangeAt(0);
+                        const rect = range.getBoundingClientRect();
+                        const containerRect = messagesContainerWrapper.getBoundingClientRect();
+
+                        if (rect.width > 0) {
+                            textFormatToolbar.style.display = 'flex';
+                            textFormatToolbar.style.top = `${rect.top - containerRect.top - 45}px`;
+                            textFormatToolbar.style.left = `${rect.left - containerRect.left + (rect.width / 2) - 60}px`;
+                            return;
+                        }
+                    }
+                }
+                textFormatToolbar.style.display = 'none';
+            });
+
+            function applyFormatToSelection(tag, styleAttr, styleValue) {
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                const range = selection.getRangeAt(0);
+                const selectedText = range.toString();
+                if (!selectedText) return;
+
+                let el = document.createElement(tag);
+                if (styleAttr && styleValue) {
+                    el.style[styleAttr] = styleValue;
+                }
+                el.textContent = selectedText;
+
+                range.deleteContents();
+                range.insertNode(el);
+
+                // Sincronizar cambios en el objeto del chat actual
+                let container = document.getElementById(`box_${activePeerId}`);
+                if (container) {
+                    let messageEl = container.querySelector('.message.user:last-of-type'); // o buscar el mensaje contenedor
+                    // Buscamos el mensaje contenedor preciso de la selección actual
+                    let parentMsg = selection.anchorNode.parentElement.closest('.message');
+                    if (parentMsg) {
+                        // Actualizar el HTML almacenado de este mensaje
+                        // Encontrar el índice de este mensaje en el chat
+                        let allUserMsgs = Array.from(container.querySelectorAll('.message.user'));
+                        let msgIndex = allUserMsgs.indexOf(parentMsg);
+                        if (msgIndex !== -1) {
+                            // Mapear los mensajes de usuario reales del array con los del DOM
+                            let chatData = activeConnections[activePeerId];
+                            let userMsgCounter = 0;
+                            for (let i = 0; i < chatData.messages.length; i++) {
+                                if (chatData.messages[i].sender === 'user') {
+                                    if (userMsgCounter === msgIndex) {
+                                        chatData.messages[i].html = parentMsg.innerHTML;
+                                        break;
+                                    }
+                                    userMsgCounter++;
+                                }
+                            }
+                            saveHistoryToStorage();
+
+                            // Enviar mensaje actualizado por P2P
+                            sendCurrentChatUpdate();
+                        }
+                    }
+                }
+                textFormatToolbar.style.display = 'none';
+                selection.removeAllRanges();
+            }
+
+            fmtBold.onclick = () => applyFormatToSelection('b', null, null);
+            fmtItalic.onclick = () => applyFormatToSelection('i', null, null);
+            fmtColor.oninput = (e) => applyFormatToSelection('span', 'color', e.target.value);
+
+            function sendCurrentChatUpdate() {
+                let chat = activeConnections[activePeerId];
+                let lastUserMsg = chat.messages.filter(m => m.sender === 'user').pop();
+                if (!lastUserMsg) return;
+
+                if (chat.isGroup) {
+                    for (let pId in chat.conns) {
+                        let conn = chat.conns[pId];
+                        if (conn && conn.open) {
+                            conn.send({ groupId: activePeerId, name: profileName, html: lastUserMsg.html });
+                        }
+                    }
+                } else {
+                    if (chat.conn && chat.conn.open) {
+                        chat.conn.send({ name: profileName, html: lastUserMsg.html });
+                    }
+                }
+        }
 
             connectBtn.addEventListener('click', () => {
                 let friendId = peerIdInput.value.trim();
@@ -1082,7 +1233,6 @@
 
             let peersList = peersRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
-            // Reemplazar nombres guardados si el usuario introdujo un ID existente o nombre
             peersList = peersList.map(p => {
                 for (let id in savedContacts) {
                     if (savedContacts[id].toLowerCase() === p.toLowerCase()) return id;
@@ -1123,11 +1273,12 @@
                 if (!text || !activePeerId) return;
 
             let chat = activeConnections[activePeerId];
-            chat.messages.push({ sender: 'user', text: text });
+            let msgObj = { sender: 'user', html: text };
+            chat.messages.push(msgObj);
             chat.lastMessage = "Tú: " + text;
 
             saveHistoryToStorage();
-            appendMessageToDOM('user', text);
+            appendMessageHTMLToDOM('user', text);
             messageInput.value = "";
             updateChatListUI();
 
@@ -1135,22 +1286,22 @@
                 for (let pId in chat.conns) {
                     let conn = chat.conns[pId];
                     if (conn && conn.open) {
-                        conn.send({ groupId: activePeerId, name: profileName, text: text });
+                        conn.send({ groupId: activePeerId, name: profileName, html: text });
                     } else {
                         let newConn = peer.connect(pId);
                         chat.conns[pId] = newConn;
                         newConn.on('open', () => {
-                            newConn.send({ groupId: activePeerId, name: profileName, text: text });
+                            newConn.send({ groupId: activePeerId, name: profileName, html: text });
                         });
                     }
                 }
             } else {
                 if (chat.conn && chat.conn.open) {
-                    chat.conn.send({ name: profileName, text: text });
+                    chat.conn.send({ name: profileName, html: text });
                 } else {
                     chat.conn = peer.connect(activePeerId);
                     chat.conn.on('open', () => {
-                        chat.conn.send({ name: profileName, text: text });
+                        chat.conn.send({ name: profileName, html: text });
                     });
                 }
             }
