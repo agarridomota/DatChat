@@ -402,7 +402,7 @@
             font-size: 0.95rem;
             word-wrap: break-word;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            user-select: text; /* Permite seleccionar texto dentro del mensaje */
+            user-select: text;
         }
 
         .message.user {
@@ -464,7 +464,7 @@
             gap: 8px;
         }
 
-        .chat-input-area input {
+        .chat-input-area input[type="text"] {
             flex: 1;
             padding: 12px 16px;
             border: 1px solid var(--input-border);
@@ -475,7 +475,24 @@
             background-color: var(--input-bg);
         }
 
-        .chat-input-area button {
+        .attach-btn-label {
+            background: none;
+            border: none;
+            color: var(--icon-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .attach-btn-label:hover { background-color: var(--sidebar-border); color: var(--text-color); }
+        .attach-btn-label svg { width: 20px; height: 20px; fill: currentColor; }
+
+        .chat-input-area button[type="submit"] {
             background-color: var(--btn-bg);
             color: #fff;
             border: none;
@@ -490,6 +507,51 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .chat-input-area button svg { width: 18px; height: 18px; fill: currentColor; }
+
+        .file-transfer-card {
+            border: 1px dashed var(--sidebar-border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: var(--input-bg);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 200px;
+        }
+        .file-transfer-info {
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .file-progress-bar {
+            width: 100%;
+            height: 6px;
+            background-color: var(--sidebar-border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .file-progress-fill {
+            width: 0%;
+            height: 100%;
+            background-color: var(--btn-bg);
+            transition: width 0.1s linear;
+        }
+        .file-download-btn {
+            background-color: var(--btn-bg);
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .file-download-btn:hover { background-color: var(--btn-hover); }
 
         .no-chat-selected {
             flex: 1;
@@ -639,7 +701,7 @@
                         <option value="">-- Elige un contacto guardado --</option>
                     </select>
                 </div>
-                
+
                 <div class="profile-input-group">
                     <label>O ID del amigo:</label>
                     <input type="text" id="peerIdInput" placeholder="Pega el ID aquí...">
@@ -701,7 +763,14 @@
                 <div id="messagesContainerWrapper" style="flex:1; display:flex; flex-direction:column; overflow:hidden;"></div>
 
                 <form class="chat-input-area" id="chatForm" style="display:none;">
-                    <input type="text" id="messageInput" placeholder="Escribe un mensaje..." autocomplete="off" required>
+                    <label class="attach-btn-label" title="Enviar archivo pesado (P2P Streaming Directo)">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z" />
+                        </svg>
+                        <input type="file" id="fileInput" style="display:none;">
+                    </label>
+                    <input type="text" id="messageInput" placeholder="Escribe un mensaje..." autocomplete="off">
                     <button type="submit"><svg viewBox="0 0 24 24">
                             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                         </svg></button>
@@ -744,6 +813,7 @@
             const messagesContainerWrapper = document.getElementById('messagesContainerWrapper');
             const chatForm = document.getElementById('chatForm');
             const messageInput = document.getElementById('messageInput');
+            const fileInput = document.getElementById('fileInput');
             const profileNameInput = document.getElementById('profileNameInput');
             const profileImageInput = document.getElementById('profileImageInput');
 
@@ -922,6 +992,11 @@
             peer.on('connection', (incomingConn) => {
                 registerConnection(incomingConn);
             });
+
+            // Manejo de conexiones de archivos de gran peso (DataChannel binario directo)
+            peer.on('connection', (incomingConn) => {
+                incomingConn.on('data', handleDataChannelData);
+            });
         }
 
             function registerConnection(conn) {
@@ -955,41 +1030,209 @@
                 if (!activePeerId) selectChat(remoteId);
             });
 
-            conn.on('data', (data) => {
-                if (data.groupId && activeConnections[data.groupId]) {
-                    let group = activeConnections[data.groupId];
-                    group.messages.push({ sender: 'other', html: data.html, name: data.name });
-                    group.lastMessage = `${data.name}: [Mensaje formateado]`;
-                    saveHistoryToStorage();
-                    updateChatListUI();
-                    if (activePeerId === data.groupId) {
-                        appendMessageHTMLToDOM('other', data.html, data.name);
-                    }
-                    return;
+                    conn.on('data', handleDataChannelData);
+
+                    conn.on('close', () => {
+                        if (activeConnections[remoteId] && !activeConnections[remoteId].isGroup) {
+                            activeConnections[remoteId].lastMessage = "[Desconectado]";
+                            updateChatListUI();
+                        }
+                    });
                 }
 
-                if (activeConnections[remoteId]) {
-                    if (data.name && !activeConnections[remoteId].customName) {
-                        activeConnections[remoteId].name = data.name;
-                    }
-                    activeConnections[remoteId].messages.push({ sender: 'other', html: data.html, name: data.name });
-                    activeConnections[remoteId].lastMessage = "[Mensaje formateado]";
-                    
-                    saveHistoryToStorage();
-                    updateChatListUI();
-                    if (activePeerId === remoteId) {
-                        appendMessageHTMLToDOM('other', data.html, data.name);
-                    }
-                }
-            });
+                // Almacenes temporales para ensamblar los chunks de archivos grandes recibidos por P2P
+                let incomingFiles = {};
 
-            conn.on('close', () => {
-                if (activeConnections[remoteId] && !activeConnections[remoteId].isGroup) {
-                    activeConnections[remoteId].lastMessage = "[Desconectado]";
-                    updateChatListUI();
+                function handleDataChannelData(data) {
+                    if (data.type === 'file-meta') {
+                        incomingFiles[data.fileId] = {
+                            fileName: data.fileName,
+                            fileSize: data.fileSize,
+                            fileType: data.fileType,
+                            senderName: data.senderName,
+                            chunks: [],
+                            receivedSize: 0,
+                            chatId: data.chatId
+                        };
+                        return;
+                    }
+
+                    if (data.type === 'file-chunk') {
+                        let fileContext = incomingFiles[data.fileId];
+                        if (fileContext) {
+                            fileContext.chunks.push(data.chunk);
+                            fileContext.receivedSize += data.chunk.byteLength;
+
+                            let progress = Math.round((fileContext.receivedSize / fileContext.fileSize) * 100);
+                            updateFileProgressDOM(data.fileId, progress, `Recibiendo: ${progress}%`);
+
+                            if (fileContext.receivedSize >= fileContext.fileSize) {
+                                let blob = new Blob(fileContext.chunks, { type: fileContext.fileType });
+                                let blobUrl = URL.createObjectURL(blob);
+
+                                let fileCardHtml = `
+                            <div class="file-transfer-card">
+                                <div class="file-transfer-info">
+                                    <span>📦 Archivo: ${fileContext.fileName}</span>
+                                    <span>${(fileContext.fileSize / (1024 * 1024)).toFixed(2)} MB</span>
+                                </div>
+                                <a class="file-download-btn" href="${blobUrl}" download="${fileContext.fileName}">📥 Descargar Archivo</a>
+                            </div>
+                        `;
+
+                                let targetChat = activeConnections[fileContext.chatId];
+                                if (targetChat) {
+                                    targetChat.messages.push({ sender: 'other', html: fileCardHtml, name: fileContext.senderName });
+                                    targetChat.lastMessage = `${fileContext.senderName}: [Archivo recibido]`;
+                                    saveHistoryToStorage();
+                                    updateChatListUI();
+                                    if (activePeerId === fileContext.chatId) {
+                                        appendMessageHTMLToDOM('other', fileCardHtml, fileContext.senderName);
+                                    }
+                                }
+                                delete incomingFiles[data.fileId];
+                            }
+                        }
+                        return;
+                    }
+
+                    // Datos de chat normales o de grupos
+                    let remoteId = this.peer;
+                    if (data.groupId && activeConnections[data.groupId]) {
+                        let group = activeConnections[data.groupId];
+                        group.messages.push({ sender: 'other', html: data.html, name: data.name });
+                group.lastMessage = `${data.name}: [Mensaje]`;
+                saveHistoryToStorage();
+                updateChatListUI();
+                if (activePeerId === data.groupId) {
+                    appendMessageHTMLToDOM('other', data.html, data.name);
                 }
-            });
+                return;
+            }
+
+            if (activeConnections[remoteId]) {
+                if (data.name && !activeConnections[remoteId].customName) {
+                    activeConnections[remoteId].name = data.name;
+                }
+                activeConnections[remoteId].messages.push({ sender: 'other', html: data.html, name: data.name });
+                activeConnections[remoteId].lastMessage = "[Mensaje]";
+
+                saveHistoryToStorage();
+                updateChatListUI();
+                if (activePeerId === remoteId) {
+                    appendMessageHTMLToDOM('other', data.html, data.name);
+                }
+            }
         }
+
+            function updateFileProgressDOM(fileId, percent, text) {
+                let fill = document.getElementById(`prog_fill_${fileId}`);
+                let textSpan = document.getElementById(`prog_text_${fileId}`);
+                if (fill) fill.style.width = percent + '%';
+                if (textSpan) textSpan.textContent = text;
+            }
+
+            // Función para enviar archivos pesados divididos en fragmentos (Chunks) de forma óptima para WebRTC DataChannel
+            function sendLargeFile(file, chatId) {
+                let chat = activeConnections[chatId];
+                if (!chat) return;
+
+                let fileId = 'file_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+                let chunkSize = 16384; // 16KB por chunk para evitar saturación del buffer WebRTC
+                let totalSize = file.size;
+
+                let fileCardHtml = `
+                <div class="file-transfer-card" id="card_${fileId}">
+                    <div class="file-transfer-info">
+                        <span>📦 Enviando: ${file.name}</span>
+                        <span id="prog_text_${fileId}">0%</span>
+                    </div>
+                    <div class="file-progress-bar">
+                        <div class="file-progress-fill" id="prog_fill_${fileId}"></div>
+                    </div>
+                </div>
+            `;
+
+                chat.messages.push({ sender: 'user', html: fileCardHtml });
+                chat.lastMessage = "Tú: [Archivo enviado]";
+                saveHistoryToStorage();
+                appendMessageHTMLToDOM('user', fileCardHtml);
+                updateChatListUI();
+
+        let metaPacket = {
+            type: 'file-meta',
+            fileId: fileId,
+            fileName: file.name,
+            fileSize: totalSize,
+            fileType: file.type,
+            senderName: profileName,
+            chatId: chatId
+        };
+
+        // Enviar metadatos al contacto o grupo
+        if (chat.isGroup) {
+            for (let pId in chat.conns) {
+                if (chat.conns[pId] && chat.conns[pId].open) chat.conns[pId].send(metaPacket);
+            }
+        } else {
+            if (chat.conn && chat.conn.open) chat.conn.send(metaPacket);
+        }
+
+        let reader = new FileReader();
+        let offset = 0;
+
+        reader.onload = function (e) {
+            let buffer = e.target.result;
+            let chunkPacket = {
+                type: 'file-chunk',
+                fileId: fileId,
+                chunk: buffer
+            };
+
+            if (chat.isGroup) {
+                for (let pId in chat.conns) {
+                    if (chat.conns[pId] && chat.conns[pId].open) chat.conns[pId].send(chunkPacket);
+                }
+            } else {
+                if (chat.conn && chat.conn.open) chat.conn.send(chunkPacket);
+            }
+
+            offset += buffer.byteLength;
+            let percent = Math.round((offset / totalSize) * 100);
+            updateFileProgressDOM(fileId, percent, `${percent}%`);
+
+            if (percent >= 100) {
+                let cardEl = document.getElementById(`card_${fileId}`);
+                if (cardEl) {
+                    let blobUrl = URL.createObjectURL(file);
+                    cardEl.innerHTML = `
+                            <div class="file-transfer-info">
+                                <span>📦 Archivo: ${file.name}</span>
+                                <span>${(totalSize / (1024 * 1024)).toFixed(2)} MB</span>
+                            </div>
+                            <a class="file-download-btn" href="${blobUrl}" download="${file.name}">📥 Descargar Archivo</a>
+                        `;
+                }
+            } else {
+                readNextChunk();
+            }
+        };
+
+        function readNextChunk() {
+            let slice = file.slice(offset, offset + chunkSize);
+            reader.readAsArrayBuffer(slice);
+        }
+
+        readNextChunk();
+    }
+
+    fileInput.addEventListener('change', (e) => {
+        let file = e.target.files[0];
+        if (file && activePeerId) {
+            sendLargeFile(file, activePeerId);
+            fileInput.value = "";
+            }
+        });
 
             function updateChatListUI() {
                 chatItemsList.innerHTML = "";
@@ -1090,7 +1333,6 @@
                 if (msg.html) {
                     div.innerHTML = msg.sender === 'other' ? `<b>${msg.name || 'Amigo'}:</b> ${msg.html}` : msg.html;
                 } else {
-                // Compatibilidad con historiales antiguos basados en texto plano
                     div.textContent = msg.sender === 'other' ? `${msg.name || 'Amigo'}: ${msg.text}` : msg.text;
                 }
                 container.appendChild(div);
@@ -1109,7 +1351,7 @@
                 container.appendChild(div);
                 container.scrollTop = container.scrollHeight;
             }
-            }
+        }
 
             // Selección de texto en mensajes para barra flotante de formato
             document.addEventListener('selectionchange', () => {
@@ -1117,23 +1359,22 @@
                 if (!selection.isCollapsed && activePeerId) {
                     const anchorNode = selection.anchorNode;
                     const messageEl = anchorNode ? anchorNode.parentElement.closest('.message') : null;
+        
+                if (messageEl && messageEl.classList.contains('user')) {
+                    const range = selection.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    const containerRect = messagesContainerWrapper.getBoundingClientRect();
 
-                    // Permitir formatear solo en mensajes propios para evitar edición externa arbitraria en tiempo real
-                    if (messageEl && messageEl.classList.contains('user')) {
-                        const range = selection.getRangeAt(0);
-                        const rect = range.getBoundingClientRect();
-                        const containerRect = messagesContainerWrapper.getBoundingClientRect();
-
-                        if (rect.width > 0) {
-                            textFormatToolbar.style.display = 'flex';
-                            textFormatToolbar.style.top = `${rect.top - containerRect.top - 45}px`;
-                            textFormatToolbar.style.left = `${rect.left - containerRect.left + (rect.width / 2) - 60}px`;
-                            return;
-                        }
+                    if (rect.width > 0) {
+                        textFormatToolbar.style.display = 'flex';
+                        textFormatToolbar.style.top = `${rect.top - containerRect.top - 45}px`;
+                        textFormatToolbar.style.left = `${rect.left - containerRect.left + (rect.width / 2) - 60}px`;
+                        return;
                     }
                 }
-                textFormatToolbar.style.display = 'none';
-            });
+            }
+            textFormatToolbar.style.display = 'none';
+        });
 
             function applyFormatToSelection(tag, styleAttr, styleValue) {
                 const selection = window.getSelection();
@@ -1142,49 +1383,41 @@
                 const selectedText = range.toString();
                 if (!selectedText) return;
 
-                let el = document.createElement(tag);
-                if (styleAttr && styleValue) {
-                    el.style[styleAttr] = styleValue;
-                }
-                el.textContent = selectedText;
+            let el = document.createElement(tag);
+            if (styleAttr && styleValue) {
+                el.style[styleAttr] = styleValue;
+            }
+            el.textContent = selectedText;
 
-                range.deleteContents();
-                range.insertNode(el);
+            range.deleteContents();
+            range.insertNode(el);
 
-                // Sincronizar cambios en el objeto del chat actual
-                let container = document.getElementById(`box_${activePeerId}`);
-                if (container) {
-                    let messageEl = container.querySelector('.message.user:last-of-type'); // o buscar el mensaje contenedor
-                    // Buscamos el mensaje contenedor preciso de la selección actual
-                    let parentMsg = selection.anchorNode.parentElement.closest('.message');
-                    if (parentMsg) {
-                        // Actualizar el HTML almacenado de este mensaje
-                        // Encontrar el índice de este mensaje en el chat
-                        let allUserMsgs = Array.from(container.querySelectorAll('.message.user'));
-                        let msgIndex = allUserMsgs.indexOf(parentMsg);
-                        if (msgIndex !== -1) {
-                            // Mapear los mensajes de usuario reales del array con los del DOM
-                            let chatData = activeConnections[activePeerId];
-                            let userMsgCounter = 0;
-                            for (let i = 0; i < chatData.messages.length; i++) {
-                                if (chatData.messages[i].sender === 'user') {
-                                    if (userMsgCounter === msgIndex) {
-                                        chatData.messages[i].html = parentMsg.innerHTML;
-                                        break;
-                                    }
-                                    userMsgCounter++;
+            let container = document.getElementById(`box_${activePeerId}`);
+            if (container) {
+                let parentMsg = selection.anchorNode.parentElement.closest('.message');
+                if (parentMsg) {
+                    let allUserMsgs = Array.from(container.querySelectorAll('.message.user'));
+                    let msgIndex = allUserMsgs.indexOf(parentMsg);
+                    if (msgIndex !== -1) {
+                        let chatData = activeConnections[activePeerId];
+                        let userMsgCounter = 0;
+                        for (let i = 0; i < chatData.messages.length; i++) {
+                            if (chatData.messages[i].sender === 'user') {
+                                if (userMsgCounter === msgIndex) {
+                                    chatData.messages[i].html = parentMsg.innerHTML;
+                                    break;
                                 }
+                                userMsgCounter++;
                             }
-                            saveHistoryToStorage();
-
-                            // Enviar mensaje actualizado por P2P
-                            sendCurrentChatUpdate();
                         }
+                        saveHistoryToStorage();
+                        sendCurrentChatUpdate();
                     }
                 }
-                textFormatToolbar.style.display = 'none';
-                selection.removeAllRanges();
             }
+            textFormatToolbar.style.display = 'none';
+            selection.removeAllRanges();
+        }
 
             fmtBold.onclick = () => applyFormatToSelection('b', null, null);
             fmtItalic.onclick = () => applyFormatToSelection('i', null, null);
@@ -1195,18 +1428,18 @@
                 let lastUserMsg = chat.messages.filter(m => m.sender === 'user').pop();
                 if (!lastUserMsg) return;
 
-                if (chat.isGroup) {
-                    for (let pId in chat.conns) {
-                        let conn = chat.conns[pId];
-                        if (conn && conn.open) {
-                            conn.send({ groupId: activePeerId, name: profileName, html: lastUserMsg.html });
-                        }
-                    }
-                } else {
-                    if (chat.conn && chat.conn.open) {
-                        chat.conn.send({ name: profileName, html: lastUserMsg.html });
+            if (chat.isGroup) {
+                for (let pId in chat.conns) {
+                    let conn = chat.conns[pId];
+                    if (conn && conn.open) {
+                        conn.send({ groupId: activePeerId, name: profileName, html: lastUserMsg.html });
                     }
                 }
+            } else {
+                if (chat.conn && chat.conn.open) {
+                    chat.conn.send({ name: profileName, html: lastUserMsg.html });
+                }
+            }
         }
 
             connectBtn.addEventListener('click', () => {
