@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chat P2P Multi-Conversación Global (Responsive Pro)</title>
+    <title>Chat P2P Multi-Conversación y Grupos (Responsive Pro)</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
@@ -90,7 +90,7 @@
         body, html {
             width: 100%;
             height: 100%;
-            height: 100dvh; /* Altura dinámica real para móviles */
+            height: 100dvh;
             background-color: var(--bg-color);
             color: var(--text-color);
             overflow: hidden;
@@ -105,7 +105,7 @@
             position: relative;
         }
 
-        /* Barra lateral de herramientas (Escritorio) */
+        /* Barra lateral de herramientas */
         .sidebar {
             width: 76px;
             background-color: var(--sidebar-bg);
@@ -465,13 +465,12 @@
             padding: 20px;
         }
 
-        /* DISEÑO RESPONSIVO PERFECTO PARA MÓVILES Y TABLETAS (< 768px) */
+        /* DISEÑO RESPONSIVO MÓVILES Y TABLETAS (< 768px) */
         @media screen and (max-width: 767px) {
             .app-container {
                 flex-direction: column-reverse;
             }
 
-            /* Barra inferior flotante adaptada que incluye la zona segura del móvil (circulo/cuadrado/flecha o barra gestual) */
             .sidebar {
                 width: 100%;
                 height: calc(64px + env(safe-area-inset-bottom, 0px));
@@ -499,7 +498,6 @@
             }
             #themeMenu { top: auto; bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
 
-            /* Panel de lista de chats ajustado para ocupar exactamente el espacio libre sobre la barra inferior */
             .chat-list-panel {
                 width: 100%;
                 height: calc(100dvh - (64px + env(safe-area-inset-bottom, 0px)));
@@ -510,7 +508,6 @@
                 display: flex;
             }
 
-            /* Panel de mensajes adaptado al espacio visible exacto */
             .chat-container {
                 width: 100%;
                 height: calc(100dvh - (64px + env(safe-area-inset-bottom, 0px)));
@@ -540,7 +537,7 @@
 <body>
 
     <div class="app-container" id="appContainer">
-        <!-- Barra lateral (PC) / Barra inferior de herramientas (Móvil, protegida contra la barra de navegación del sistema) -->
+        <!-- Barra de herramientas -->
         <div class="sidebar">
             <div class="sidebar-avatar-container" id="avatarMenuBtn" title="Tu Perfil y Configuración">
                 <div class="sidebar-avatar" id="avatarBtn"></div>
@@ -587,7 +584,7 @@
                 <button class="theme-btn" data-lang="de">Deutsch</button>
             </div>
 
-            <!-- Menú Conexión (Nuevo Chat) -->
+            <!-- Menú Conexión y Creación de Grupos -->
             <div class="dropdown-menu" id="connectionMenu">
                 <div class="menu-section-title">Nuevo Chat P2P</div>
                 <div class="connection-status status-ready">Conectado a la Red Global</div>
@@ -597,10 +594,22 @@
                 </div>
                 <button class="theme-btn" id="connectBtn"
                     style="text-align:center; background:var(--btn-bg); color:#fff; font-weight:bold;">Conectar Conversación</button>
+                
+                <div class="menu-section-title" style="margin-top:10px;">Crear Grupo P2P</div>
+                <div class="profile-input-group">
+                    <label>Nombre del Grupo:</label>
+                    <input type="text" id="groupNameInput" placeholder="Ej. Amigos del Gaming...">
+                </div>
+                <div class="profile-input-group">
+                    <label>IDs de los amigos (separados por comas):</label>
+                    <input type="text" id="groupPeersInput" placeholder="id1, id2, id3...">
+                </div>
+                <button class="theme-btn" id="createGroupBtn"
+                    style="text-align:center; background:#10b981; color:#fff; font-weight:bold;">Crear Grupo</button>
             </div>
 
             <div class="sidebar-divider"></div>
-            <button class="sidebar-add-btn" id="addChatBtn" title="Añadir nueva conversación">+</button>
+            <button class="sidebar-add-btn" id="addChatBtn" title="Añadir nueva conversación o grupo">+</button>
         </div>
 
         <!-- Panel de Lista de Conversaciones -->
@@ -626,7 +635,8 @@
             
             <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;" id="chatAreaWrapper">
                 <div class="no-chat-selected" id="noChatSelected" data-i18n="welcomeText">
-                    No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para añadir o unirte a una conversación.
+                    No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para añadir o unirte a una conversación o crear un
+                    grupo.
                 </div>
                 
                 <div id="messagesContainerWrapper" style="flex:1; display:flex; flex-direction:column; overflow:hidden;"></div>
@@ -658,6 +668,9 @@
             const myFullIdBox = document.getElementById('myFullIdBox');
         const peerIdInput = document.getElementById('peerIdInput');
         const connectBtn = document.getElementById('connectBtn');
+            const groupNameInput = document.getElementById('groupNameInput');
+            const groupPeersInput = document.getElementById('groupPeersInput');
+            const createGroupBtn = document.getElementById('createGroupBtn');
             const chatItemsList = document.getElementById('chatItemsList');
             const chatCount = document.getElementById('chatCount');
             const activeChatTitleText = document.getElementById('activeChatTitleText');
@@ -672,11 +685,11 @@
             const profileImageInput = document.getElementById('profileImageInput');
 
             const translations = {
-            es: { profileTitle: "Perfil y Tu ID", nameLabel: "Tu Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversaciones", renameBtn: "Cambiar Nombre", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para añadir o unirte a una conversación.", inputPlaceholder: "Escribe un mensaje...", selectPrompt: "Selecciona un chat" },
-            en: { profileTitle: "Profile & ID", nameLabel: "Your Name:", imageLabel: "Profile Picture:", screenModeTitle: "Screen Mode", modeNormal: "Normal Mode", modeDark: "Dark Mode", modeContrast: "High Contrast", fontTitle: "Font Family", langTitle: "Language", conversationsTitle: "Conversations", renameBtn: "Rename", welcomeText: "No chat selected.<br>Click the **`+`** button to join a conversation.", inputPlaceholder: "Type a message...", selectPrompt: "Select a chat" },
-            pt: { profileTitle: "Perfil e ID", nameLabel: "Seu Nome:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Tela", modeNormal: "Modo Normal", modeDark: "Modo Escuro", modeContrast: "Alto Contraste", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversações", renameBtn: "Renomear", welcomeText: "Nenhum chat selecionado.<br>Clique no botão **`+`** para iniciar um chat.", inputPlaceholder: "Digite uma mensagem...", selectPrompt: "Selecione um chat" },
-            fr: { profileTitle: "Profil & ID", nameLabel: "Votre Nom :", imageLabel: "Photo de profil :", screenModeTitle: "Mode d'affichage", modeNormal: "Mode Normal", modeDark: "Mode Sombre", modeContrast: "Contraste Élevé", fontTitle: "Police", langTitle: "Langue", conversationsTitle: "Conversations", renameBtn: "Renommer", welcomeText: "Aucun chat sélectionné.<br>Cliquez sur **`+`** pour discuter.", inputPlaceholder: "Tapez un message...", selectPrompt: "Sélectionnez un chat" },
-            it: { profileTitle: "Profilo e ID", nameLabel: "Il tuo Nome:", imageLabel: "Foto profilo:", screenModeTitle: "Modalità Schermo", modeNormal: "Modale Normale", modeDark: "Modalità Scura", modeContrast: "Alto Contrasto", fontTitle: "Carattere", langTitle: "Lingua", conversationsTitle: "Conversazioni", renameBtn: "Rinomina", welcomeText: "Nessuna chat selezionata.<br>Clicca **`+`** per chattare.", inputPlaceholder: "Scrivi un messaggio...", selectPrompt: "Seleziona una chat" },
+            es: { profileTitle: "Perfil y Tu ID", nameLabel: "Tu Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversaciones", renameBtn: "Cambiar Nombre", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para añadir o unirte a una conversación o grupo.", inputPlaceholder: "Escribe un mensaje...", selectPrompt: "Selecciona un chat" },
+            en: { profileTitle: "Profile & ID", nameLabel: "Your Name:", imageLabel: "Profile Picture:", screenModeTitle: "Screen Mode", modeNormal: "Normal Mode", modeDark: "Dark Mode", modeContrast: "High Contrast", fontTitle: "Font Family", langTitle: "Language", conversationsTitle: "Conversations", renameBtn: "Rename", welcomeText: "No chat selected.<br>Click the **`+`** button to join or create a group.", inputPlaceholder: "Type a message...", selectPrompt: "Select a chat" },
+            pt: { profileTitle: "Perfil e ID", nameLabel: "Seu Nome:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Tela", modeNormal: "Modo Normal", modeDark: "Modo Escuro", modeContrast: "Alto Contraste", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversações", renameBtn: "Renomear", welcomeText: "Nenhum chat selecionado.<br>Clique no botão **`+`** para iniciar um chat ou grupo.", inputPlaceholder: "Digite uma mensagem...", selectPrompt: "Selecione um chat" },
+            fr: { profileTitle: "Profil & ID", nameLabel: "Votre Nom :", imageLabel: "Photo de profil :", screenModeTitle: "Mode d'affichage", modeNormal: "Mode Normal", modeDark: "Mode Sombre", modeContrast: "Contraste Élevé", fontTitle: "Police", langTitle: "Langue", conversationsTitle: "Conversations", renameBtn: "Renommer", welcomeText: "Aucun chat sélectionné.<br>Cliquez sur **`+`**.", inputPlaceholder: "Tapez un message...", selectPrompt: "Sélectionnez un chat" },
+            it: { profileTitle: "Profilo e ID", nameLabel: "Il tuo Nome:", imageLabel: "Foto profilo:", screenModeTitle: "Modalità Schermo", modeNormal: "Modalità Normale", modeDark: "Modalità Scura", modeContrast: "Alto Contrasto", fontTitle: "Carattere", langTitle: "Lingua", conversationsTitle: "Conversazioni", renameBtn: "Rinomina", welcomeText: "Nessuna chat selezionata.<br>Clicca **`+`**.", inputPlaceholder: "Scrivi un messaggio...", selectPrompt: "Seleziona una chat" },
             de: { profileTitle: "Profil & ID", nameLabel: "Ihr Name:", imageLabel: "Profilbild:", screenModeTitle: "Bildschirmmodus", modeNormal: "Normaler Modus", modeDark: "Dunkler Modus", modeContrast: "Hoher Kontrast", fontTitle: "Schriftart", langTitle: "Sprache", conversationsTitle: "Konversationen", renameBtn: "Umbenennen", welcomeText: "Kein Chat ausgewählt.<br>Klicken Sie auf **`+`**.", inputPlaceholder: "Nachricht schreiben...", selectPrompt: "Wählen Sie einen Chat aus" }
         };
 
@@ -750,6 +763,9 @@
                     let parsed = JSON.parse(savedChats);
                     for (let id in parsed) {
                         activeConnections[id] = {
+                            isGroup: parsed[id].isGroup || false,
+                            peers: parsed[id].peers || [],
+                            conns: {},
                             conn: null,
                             customName: parsed[id].customName || null,
                             name: parsed[id].name,
@@ -768,6 +784,8 @@
                 let serializable = {};
                 for (let id in activeConnections) {
                     serializable[id] = {
+                    isGroup: activeConnections[id].isGroup,
+                    peers: activeConnections[id].peers,
                     customName: activeConnections[id].customName,
                     name: activeConnections[id].name,
                     lastMessage: activeConnections[id].lastMessage,
@@ -792,11 +810,21 @@
 
             function registerConnection(conn) {
                 const remoteId = conn.peer;
+        
+            // Comprobar si pertenece a algún grupo existente
+            for (let id in activeConnections) {
+                if (activeConnections[id].isGroup && activeConnections[id].peers.includes(remoteId)) {
+                    activeConnections[id].conns[remoteId] = conn;
+                }
+            }
 
-                if (activeConnections[remoteId]) {
+            if (activeConnections[remoteId] && !activeConnections[remoteId].isGroup) {
                 activeConnections[remoteId].conn = conn;
-            } else {
+            } else if (!activeConnections[remoteId]) {
                 activeConnections[remoteId] = {
+                    isGroup: false,
+                    peers: [],
+                    conns: {},
                     conn: conn,
                     customName: null,
                     name: "Amigo (" + remoteId.substring(0, 4) + ")",
@@ -811,22 +839,40 @@
             });
 
             conn.on('data', (data) => {
-                if (data.name && !activeConnections[remoteId].customName) {
-                    activeConnections[remoteId].name = data.name;
+                // Si es un mensaje de grupo recibido desde un miembro
+                if (data.groupId && activeConnections[data.groupId]) {
+                    let group = activeConnections[data.groupId];
+                    group.messages.push({ sender: 'other', text: data.text, name: data.name });
+                    group.lastMessage = `${data.name}: ${data.text}`;
+                    saveHistoryToStorage();
+                    updateChatListUI();
+                    if (activePeerId === data.groupId) {
+                        appendMessageToDOM('other', data.text, data.name);
+                    }
+                    return;
                 }
-                activeConnections[remoteId].messages.push({ sender: 'other', text: data.text, name: data.name });
-                activeConnections[remoteId].lastMessage = data.text;
 
-                saveHistoryToStorage();
-                updateChatListUI();
-                if (activePeerId === remoteId) {
-                    appendMessageToDOM('other', data.text, data.name);
+                // Chat individual normal
+                if (activeConnections[remoteId]) {
+                    if (data.name && !activeConnections[remoteId].customName) {
+                        activeConnections[remoteId].name = data.name;
+                    }
+                    activeConnections[remoteId].messages.push({ sender: 'other', text: data.text, name: data.name });
+                    activeConnections[remoteId].lastMessage = data.text;
+
+                    saveHistoryToStorage();
+                    updateChatListUI();
+                    if (activePeerId === remoteId) {
+                        appendMessageToDOM('other', data.text, data.name);
+                    }
                 }
             });
 
             conn.on('close', () => {
-                activeConnections[remoteId].lastMessage = "[Desconectado]";
-                updateChatListUI();
+                if (activeConnections[remoteId] && !activeConnections[remoteId].isGroup) {
+                    activeConnections[remoteId].lastMessage = "[Desconectado]";
+                    updateChatListUI();
+                }
             });
         }
 
@@ -842,7 +888,7 @@
                 item.className = `chat-item ${activePeerId === id ? 'active' : ''}`;
                 item.innerHTML = `
                     <div class="chat-item-info">
-                        <div class="chat-item-title">${displayName}</div>
+                        <div class="chat-item-title">${chat.isGroup ? '👥 ' : ''}${displayName}</div>
                         <div class="chat-item-subtitle">${chat.lastMessage}</div>
                     </div>
                     <button class="chat-item-delete" title="Eliminar chat">&times;</button>
@@ -859,11 +905,16 @@
         }
 
             function deleteChat(id) {
-                if (activeConnections[id] && activeConnections[id].conn) {
-                    activeConnections[id].conn.close();
+            if (activeConnections[id]) {
+                if (activeConnections[id].conn) activeConnections[id].conn.close();
+                if (activeConnections[id].conns) {
+                    for (let p in activeConnections[id].conns) {
+                        activeConnections[id].conns[p].close();
+                    }
                 }
-                delete activeConnections[id];
-                saveHistoryToStorage();
+            }
+            delete activeConnections[id];
+            saveHistoryToStorage();
 
             if (activePeerId === id) {
                 activePeerId = null;
@@ -885,7 +936,7 @@
             appContainer.classList.add('chat-active');
 
             let chat = activeConnections[id];
-            activeChatTitleText.textContent = chat.customName || chat.name;
+            activeChatTitleText.textContent = (chat.isGroup ? '👥 ' : '') + (chat.customName || chat.name);
             
             updateChatListUI();
             renderMessagesForActiveChat();
@@ -899,10 +950,10 @@
                 if (!activePeerId) return;
                 let chat = activeConnections[activePeerId];
                 let currentDisplayName = chat.customName || chat.name;
-                let newName = prompt("Escribe el nuevo nombre para este chat:", currentDisplayName);
-                if (newName !== null) {
-                    chat.customName = newName.trim() || null;
-                activeChatTitleText.textContent = chat.customName || chat.name;
+            let newName = prompt("Escribe el nuevo nombre:", currentDisplayName);
+            if (newName !== null) {
+                chat.customName = newName.trim() || null;
+                activeChatTitleText.textContent = (chat.isGroup ? '👥 ' : '') + (chat.customName || chat.name);
                 saveHistoryToStorage();
                 updateChatListUI();
             }
@@ -951,6 +1002,42 @@
             connectionMenu.classList.remove('active');
         });
 
+            createGroupBtn.addEventListener('click', () => {
+                let groupName = groupNameInput.value.trim();
+                let peersRaw = groupPeersInput.value.trim();
+                if (!groupName || !peersRaw) {
+                    alert("Introduce un nombre de grupo y al menos un ID.");
+                    return;
+                }
+
+                let peersList = peersRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                let groupId = 'group_' + Date.now();
+
+                let groupObj = {
+                    isGroup: true,
+                    peers: peersList,
+                    conns: {},
+                    customName: groupName,
+                    name: groupName,
+                    lastMessage: "Grupo creado",
+                    messages: []
+                };
+
+                peersList.forEach(pId => {
+                    let conn = peer.connect(pId);
+                    groupObj.conns[pId] = conn;
+                });
+
+                activeConnections[groupId] = groupObj;
+                saveHistoryToStorage();
+                updateChatListUI();
+                selectChat(groupId);
+
+                groupNameInput.value = "";
+                groupPeersInput.value = "";
+                connectionMenu.classList.remove('active');
+            });
+
             chatForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 let text = messageInput.value.trim();
@@ -965,16 +1052,30 @@
             messageInput.value = "";
             updateChatListUI();
 
-            if (chat.conn && chat.conn.open) {
-                chat.conn.send({
-                    name: profileName,
-                    text: text
-                });
+            if (chat.isGroup) {
+                // Enviar mensaje a todos los miembros del grupo
+                for (let pId in chat.conns) {
+                    let conn = chat.conns[pId];
+                    if (conn && conn.open) {
+                        conn.send({ groupId: activePeerId, name: profileName, text: text });
+                    } else {
+                        let newConn = peer.connect(pId);
+                        chat.conns[pId] = newConn;
+                        newConn.on('open', () => {
+                            newConn.send({ groupId: activePeerId, name: profileName, text: text });
+                        });
+                    }
+                }
             } else {
-                chat.conn = peer.connect(activePeerId);
-                chat.conn.on('open', () => {
+            // Chat individual
+                if (chat.conn && chat.conn.open) {
                     chat.conn.send({ name: profileName, text: text });
-                });
+                } else {
+                    chat.conn = peer.connect(activePeerId);
+                    chat.conn.on('open', () => {
+                        chat.conn.send({ name: profileName, text: text });
+                    });
+                }
             }
         });
 
@@ -997,8 +1098,9 @@
         });
 
             document.querySelectorAll('.theme-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    let t = btn.getAttribute('data-theme');
+            if (btn.id === 'connectBtn' || btn.id === 'createGroupBtn') return;
+            btn.addEventListener('click', () => {
+                let t = btn.getAttribute('data-theme');
                 let f = btn.getAttribute('data-font');
                 let l = btn.getAttribute('data-lang');
 
