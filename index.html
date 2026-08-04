@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat en Red P2P Global</title>
+    <!-- Importar la fuente Comfortaa desde Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
+    <!-- Importar PeerJS configurado con servidores públicos STUN/TURN gratuitos para redes distintas -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --sidebar-bg: #e2e8f0;
+            --sidebar-border: #cbd5e1;
+            --chat-bg: #ffffff;
+            --messages-bg: #f7f9fc;
+            --text-color: #1e293b;
+            --user-msg-bg: #d0e1fd;
+            --user-msg-text: #0d47a1;
+            --other-msg-bg: #ffffff;
+            --other-msg-text: #1565c0;
+            --other-msg-border: #e1e8ed;
+            --input-area-bg: #edf2f7;
+            --input-border: #cbd5e1;
+            --input-bg: #ffffff;
+            --btn-bg: #1976d2;
+            --btn-hover: #115293;
+            --icon-color: #64748b;
+            --avatar-bg: #94a3b8;
+            --divider-color: #cbd5e1;
+            --current-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --current-font-weight: normal;
+        }
+
+        /* Tema Oscuro */
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
+            --sidebar-border: #334155;
+            --chat-bg: #0f172a;
+            --messages-bg: #090d16;
+            --text-color: #f1f5f9;
+            --user-msg-bg: #1d4ed8;
+            --user-msg-text: #ffffff;
+            --other-msg-bg: #1e293b;
+            --other-msg-text: #60a5fa;
+            --other-msg-border: #334155;
+            --input-area-bg: #1e293b;
+            --input-border: #475569;
+            --input-bg: #0f172a;
+            --btn-bg: #2563eb;
+            --btn-hover: #1d4ed8;
+            --icon-color: #94a3b8;
+            --avatar-bg: #475569;
+            --divider-color: #334155;
+        }
+
+        /* Tema Contraste Alto */
+        body.high-contrast {
+            --bg-color: #000000;
+            --sidebar-bg: #000000;
+            --sidebar-border: #ffffff;
+            --chat-bg: #000000;
+            --messages-bg: #000000;
+            --text-color: #ffffff;
+            --user-msg-bg: #000000;
+            --user-msg-text: #ffff00;
+            --other-msg-bg: #000000;
+            --other-msg-text: #00ffff;
+            --other-msg-border: #ffffff;
+            --input-area-bg: #000000;
+            --input-border: #ffffff;
+            --input-bg: #000000;
+            --btn-bg: #ffffff;
+            --btn-hover: #cccccc;
+            --icon-color: #ffffff;
+            --avatar-bg: #ffffff;
+            --divider-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--current-font);
+            font-weight: var(--current-font-weight);
+        }
+
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .app-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            background: var(--chat-bg);
+            overflow: hidden;
+        }
+
+        /* Barra lateral izquierda */
+        .sidebar {
+            width: 80px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            gap: 20px;
+            transition: background-color 0.3s, border-color 0.3s;
+            position: relative;
+        }
+
+        /* Contenedor del avatar */
+        .sidebar-avatar-container {
+            position: relative;
+        }
+
+        .sidebar-avatar {
+            width: 45px;
+            height: 45px;
+            background-color: var(--avatar-bg);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Número único en la esquina del avatar */
+        .sidebar-avatar-number {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            background-color: var(--btn-bg);
+            color: #ffffff;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 10px;
+            border: 2px solid var(--sidebar-bg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+        }
+
+        .sidebar-settings {
+            width: 40px;
+            height: 40px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        .sidebar-settings:hover {
+            transform: scale(1.1);
+        }
+
+        .sidebar-settings svg {
+            width: 26px;
+            height: 26px;
+            fill: var(--icon-color);
+            transition: fill 0.3s;
+        }
+
+        /* Menús desplegables comunes */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            left: 90px;
+            background-color: var(--sidebar-bg);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 12px;
+            z-index: 100;
+            width: 260px;
+            max-height: 85vh;
+            overflow-y: auto;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dropdown-menu.active {
+            display: flex;
+        }
+
+        #themeMenu {
+            top: 75px;
+        }
+
+        #connectionMenu {
+            bottom: 20px;
+        }
+
+        .menu-section-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--icon-color);
+            margin-top: 4px;
+            border-bottom: 1px solid var(--sidebar-border);
+            padding-bottom: 2px;
+        }
+
+        .theme-btn,
+        .profile-input-group input[type="text"] {
+            background: none;
+            border: 1px solid var(--sidebar-border);
+            padding: 6px 10px;
+            text-align: left;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-color);
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+
+        .theme-btn:hover {
+            background-color: var(--sidebar-border);
+        }
+
+        .profile-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .profile-input-group label {
+            font-size: 0.8rem;
+            color: var(--text-color);
+        }
+
+        .profile-input-group input[type="file"] {
+            font-size: 0.8rem;
+            color: var(--text-color);
+        }
+
+        .connection-status {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status-disconnected {
+            background-color: #f87171;
+            color: #fff;
+        }
+
+        .status-connected {
+            background-color: #4ade80;
+            color: #fff;
+        }
+
+        .my-id-box {
+            font-size: 0.75rem;
+            background: var(--input-bg);
+            border: 1px solid var(--sidebar-border);
+            padding: 6px;
+            border-radius: 4px;
+            word-break: break-all;
+            text-align: center;
+            font-weight: bold;
+            color: var(--btn-bg);
+            cursor: pointer;
+        }
+
+        .my-id-box:hover {
+            border-color: var(--btn-bg);
+        }
+
+        /* Línea divisoria de lado a lado */
+        .sidebar-divider {
+            width: 100%;
+            height: 2px;
+            background-color: var(--divider-color);
+            margin-top: auto;
+            transition: background-color 0.3s;
+        }
+
+        /* Botón de más (+) para abrir el menú de conexión */
+        .sidebar-add-btn {
+            background: none;
+            border: none;
+            color: var(--icon-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            line-height: 1;
+            transition: color 0.2s, transform 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-add-btn:hover {
+            color: var(--text-color);
+            transform: scale(1.15);
+        }
+
+        /* Contenedor principal del chat */
+        .chat-container {
+            flex: 1;
+            height: 100%;
+            background: var(--chat-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 0.3s;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: var(--messages-bg);
+            transition: background-color 0.3s;
+        }
+
+        .message {
+            max-width: 60%;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            word-wrap: break-word;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .message.user {
+            background-color: var(--user-msg-bg);
+            color: var(--user-msg-text);
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+
+        .message.other {
+            background-color: var(--other-msg-bg);
+            color: var(--other-msg-text);
+            align-self: flex-start;
+            border-top-left-radius: 0;
+            border: 1px solid var(--other-msg-border);
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 15px 20px;
+            background-color: var(--input-area-bg);
+            border-top: 1px solid var(--sidebar-border);
+            align-items: center;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 1px solid var(--input-border);
+            border-radius: 30px;
+            outline: none;
+            font-size: 1rem;
+            color: var(--text-color);
+            background-color: var(--input-bg);
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+
+        .chat-input-area input:focus {
+            border-color: var(--icon-color);
+        }
+
+        .chat-input-area button {
+            background-color: var(--btn-bg);
+            color: var(--chat-bg);
+            border: none;
+            width: 50px;
+            height: 50px;
+            margin-left: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-input-area button:hover {
+            background-color: var(--btn-hover);
+        }
+
+        .chat-input-area button:active {
+            transform: scale(0.95);
+        }
+
+        .chat-input-area button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Barra lateral -->
+        <div class="sidebar">
+            <!-- Contenedor del Avatar y su número único -->
+            <div class="sidebar-avatar-container" title="Tu Perfil">
+                <div class="sidebar-avatar" id="avatarBtn"></div>
+                <div class="sidebar-avatar-number" id="avatarNumber">#...</div>
+            </div>
+
+            <button class="sidebar-settings" id="settingsBtn" title="Configuración y Perfil">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.97 19.05,5.05L16.56,6.05C16.04,5.65 15.48,5.32 14.87,5.07L14.49,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.51,2.42L9.13,5.07C8.52,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.97 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.52,18.68 9.13,18.93L9.51,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.49,21.58L14.87,18.93C15.48,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+                </svg>
+            </button>
+
+            <!-- Menú de Configuración y Perfil -->
+            <div class="dropdown-menu" id="themeMenu">
+                <div class="menu-section-title" data-i18n="profileTitle">Crear / Editar Perfil</div>
+                <div class="profile-input-group">
+                    <label for="profileNameInput" data-i18n="nameLabel">Nombre:</label>
+                    <input type="text" id="profileNameInput" placeholder="Tu nombre...">
+                </div>
+                <div class="profile-input-group">
+                    <label for="profileImageInput" data-i18n="imageLabel">Foto de perfil:</label>
+                    <input type="file" id="profileImageInput" accept="image/*">
+                </div>
+
+                <div class="menu-section-title" data-i18n="screenModeTitle">Modo de Pantalla</div>
+                <button class="theme-btn" data-theme="normal" data-i18n="modeNormal">Modo Normal</button>
+                <button class="theme-btn" data-theme="dark" data-i18n="modeDark">Modo Oscuro</button>
+                <button class="theme-btn" data-theme="contrast" data-i18n="modeContrast">Contraste Alto</button>
+
+                <div class="menu-section-title" data-i18n="fontTitle">Tipo de Letra</div>
+                <button class="theme-btn" data-font="sans">Sans-Serif</button>
+                <button class="theme-btn" data-font="serif">Serif (Clásica)</button>
+                <button class="theme-btn" data-font="mono">Monospace</button>
+                <button class="theme-btn" data-font="comfortaa">Comfortaa (Negrita)</button>
+
+                <div class="menu-section-title" data-i18n="langTitle">Idioma</div>
+                <button class="theme-btn" data-lang="es">Español</button>
+                <button class="theme-btn" data-lang="en">English</button>
+                <button class="theme-btn" data-lang="pt">Português</button>
+                <button class="theme-btn" data-lang="fr">Français</button>
+                <button class="theme-btn" data-lang="it">Italiano</button>
+                <button class="theme-btn" data-lang="de">Deutsch</button>
+            </div>
+
+            <!-- Menú de Conexión P2P Global (Movido al botón +) -->
+            <div class="dropdown-menu" id="connectionMenu">
+                <div class="menu-section-title">Tu ID para conectar (Click para copiar)</div>
+                <div class="my-id-box" id="myFullIdBox" title="Haz clic para copiar">Cargando ID...</div>
+
+                <div class="menu-section-title">Estado de Conexión</div>
+                <div id="connectionStatus" class="connection-status status-disconnected">Desconectado</div>
+
+                <div class="profile-input-group">
+                    <label for="peerIdInput">ID del amigo (Redes distintas):</label>
+                    <input type="text" id="peerIdInput" placeholder="Pega el ID aquí...">
+                </div>
+                <button class="theme-btn" id="connectBtn"
+                    style="text-align: center; background-color: var(--btn-bg); color: #fff;">Conectar</button>
+            </div>
+
+            <!-- Línea divisoria de lado a lado -->
+            <div class="sidebar-divider"></div>
+
+            <!-- Botón de más (+) para abrir la conexión P2P Global -->
+            <button class="sidebar-add-btn" id="addChatBtn" title="Conexión y Conectar con amigo">+</button>
+        </div>
+
+        <!-- Panel del chat -->
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message other" id="welcomeMessage" data-i18n="welcomeText">¡Hola! Haz clic en el botón de
+                    más (+) abajo a la izquierda para ver tu ID global, pasárselo a alguien en otra red WiFi y chatear.
+                </div>
+            </div>
+
+            <form class="chat-input-area" id="chatForm">
+                <input type="text" id="messageInput" placeholder="Escribe tu mensaje aquí..." autocomplete="off"
+                    required>
+                <button type="submit" title="Enviar" id="sendBtn">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const avatarBtn = document.getElementById('avatarBtn');
+        const avatarNumber = document.getElementById('avatarNumber');
+        const addChatBtn = document.getElementById('addChatBtn');
+        const themeMenu = document.getElementById('themeMenu');
+        const connectionMenu = document.getElementById('connectionMenu');
+        const menuButtons = document.querySelectorAll('.theme-btn');
+        const profileNameInput = document.getElementById('profileNameInput');
+        const profileImageInput = document.getElementById('profileImageInput');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const peerIdInput = document.getElementById('peerIdInput');
+        const connectBtn = document.getElementById('connectBtn');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const myFullIdBox = document.getElementById('myFullIdBox');
+
+        let profileName = "";
+        let currentLang = "es";
+        let peer = null;
+        let conn = null;
+
+        // Diccionario de traducciones completo
+        const translations = {
+            es: {
+                profileTitle: "Crear / Editar Perfil",
+                nameLabel: "Nombre:",
+                imageLabel: "Foto de perfil:",
+                screenModeTitle: "Modo de Pantalla",
+                modeNormal: "Modo Normal",
+                modeDark: "Modo Oscuro",
+                modeContrast: "Contraste Alto",
+                fontTitle: "Tipo de Letra",
+                langTitle: "Idioma",
+                welcomeText: "¡Hola! Haz clic en el botón de más (+) abajo a la izquierda para ver tu ID global, pasárselo a alguien en otra red WiFi y chatear.",
+                inputPlaceholder: "Escribe tu mensaje aquí...",
+                profileUpdated: (name) => `¡Hola, ${name}! Tu perfil se ha actualizado y guardado correctamente.`,
+                welcomeBack: (name) => `¡Hola de nuevo, ${name}! Tus datos y preferencias han sido cargados.`
+            },
+            en: {
+                profileTitle: "Create / Edit Profile",
+                nameLabel: "Name:",
+                imageLabel: "Profile Picture:",
+                screenModeTitle: "Screen Mode",
+                modeNormal: "Normal Mode",
+                modeDark: "Dark Mode",
+                modeContrast: "High Contrast",
+                fontTitle: "Font Family",
+                langTitle: "Language",
+                welcomeText: "Hello! Click the plus (+) button at the bottom left to see your global ID, share it with someone on another network, and chat.",
+                inputPlaceholder: "Type your message here...",
+                profileUpdated: (name) => `Hello, ${name}! Your profile has been updated and saved successfully.`,
+                welcomeBack: (name) => `Welcome back, ${name}! Your data and preferences have been loaded.`
+            },
+            pt: {
+                profileTitle: "Criar / Editar Perfil",
+                nameLabel: "Nome:",
+                imageLabel: "Foto de perfil:",
+                screenModeTitle: "Modo de Tela",
+                modeNormal: "Modo Normal",
+                modeDark: "Modo Escuro",
+                modeContrast: "Alto Contraste",
+                fontTitle: "Tipo de Letra",
+                langTitle: "Idioma",
+                welcomeText: "Olá! Clique no botão mais (+) no canto inferior esquerdo para ver seu ID global, compartilhá-lo em outra rede e conversar.",
+                inputPlaceholder: "Digite sua mensagem aqui...",
+                profileUpdated: (name) => `Olá, ${name}! Seu perfil foi atualizado e salvo com sucesso.`,
+                welcomeBack: (name) => `Bem-vindo de volta, ${name}! Seus dados e preferências foram carregados.`
+            },
+            fr: {
+                profileTitle: "Créer / Modifier le profil",
+                nameLabel: "Nom :",
+                imageLabel: "Photo de profil :",
+                screenModeTitle: "Mode d'affichage",
+                modeNormal: "Mode Normal",
+                modeDark: "Mode Sombre",
+                modeContrast: "Contraste Élevé",
+                fontTitle: "Police de caractères",
+                langTitle: "Langue",
+                welcomeText: "Bonjour ! Cliquez sur le bouton plus (+) en bas à gauche pour voir votre ID global et chatter depuis n'importe quel réseau.",
+                inputPlaceholder: "Tapez votre message ici...",
+                profileUpdated: (name) => `Bonjour ${name} ! Votre profil a été mis à jour et enregistré avec succès.`,
+                welcomeBack: (name) => `Bon retour, ${name} ! Vos données et préférences ont été chargées.`
+            },
+            it: {
+                profileTitle: "Crea / Modifica Profilo",
+                nameLabel: "Nome:",
+                imageLabel: "Foto profilo:",
+                screenModeTitle: "Modalità Schermo",
+                modeNormal: "Modalità Normale",
+                modeDark: "Modalità Scura",
+                modeContrast: "Alto Contrasto",
+                fontTitle: "Tipo di Carattere",
+                langTitle: "Lingua",
+                welcomeText: "Ciao! Clicca sul pulsante più (+) in basso a sinistra per vedere il tuo ID globale e chattare da qualsiasi rete.",
+                inputPlaceholder: "Scrivi il tuo messaggio qui...",
+                profileUpdated: (name) => `Ciao, ${name}! Il tuo profilo è stato aggiornato e salvato con successo.`,
+                welcomeBack: (name) => `Bentornato, ${name}! I tuoi dati e le tue preferenze sono stati caricati.`
+            },
+            de: {
+                profileTitle: "Profil erstellen / bearbeiten",
+                nameLabel: "Name:",
+                imageLabel: "Profilbild:",
+                screenModeTitle: "Bildschirmmodus",
+                modeNormal: "Normaler Modus",
+                modeDark: "Dunkler Modus",
+                modeContrast: "Hoher Kontrast",
+                fontTitle: "Schriftart",
+                langTitle: "Sprache",
+                welcomeText: "Hallo! Klicken Sie unten links auf die Plus-Taste (+), um Ihre globale ID anzuzeigen und über verschiedene Netzwerke hinweg zu chatten.",
+                inputPlaceholder: "Schreiben Sie Ihre Nachricht hier...",
+                profileUpdated: (name) => `Hallo ${name}! Ihr Profil wurde erfolgreich aktualisiert und gespeichert.`,
+                welcomeBack: (name) => `Willkommen zurück, ${name}! Ihre Daten und Einstellungen wurden geladen.`
+            }
+        };
+
+        // Inicialización de PeerJS optimizada con servidores STUN/TURN públicos globales
+        // Esto permite atravesar NATs, firewalls y redes WiFi completamente distintas (WAN global).
+        function initPeer() {
+            let savedPeerId = localStorage.getItem('chat_peer_id');
+
+            const peerOptions = {
+                config: {
+                    'iceServers': [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:global.stun.twilio.com:3478' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            };
+
+            peer = savedPeerId ? new Peer(savedPeerId, peerOptions) : new Peer(peerOptions);
+
+            peer.on('open', (id) => {
+                if (!savedPeerId) {
+                    localStorage.setItem('chat_peer_id', id);
+                }
+                avatarNumber.textContent = "#" + id.substring(0, 4);
+                myFullIdBox.textContent = id;
+            });
+
+            peer.on('error', (err) => {
+                if (err.type === 'unavailable-id') {
+                    localStorage.removeItem('chat_peer_id');
+                    location.reload();
+                }
+            });
+
+            peer.on('connection', (incomingConn) => {
+                conn = incomingConn;
+                setupConnection();
+            });
+        }
+
+        // Copiar ID global al portapapeles haciendo clic en la caja de texto del menú (+)
+        myFullIdBox.addEventListener('click', () => {
+            const idText = myFullIdBox.textContent;
+            if (idText && idText !== "Cargando ID...") {
+                navigator.clipboard.writeText(idText).then(() => {
+                    alert("¡ID global copiado al portapapeles!\n\n" + idText);
+                });
+            }
+        });
+
+        connectBtn.addEventListener('click', () => {
+            const friendId = peerIdInput.value.trim();
+            if (!friendId) return;
+            conn = peer.connect(friendId);
+            setupConnection();
+        });
+
+        function setupConnection() {
+            connectionStatus.textContent = "Conectando...";
+            connectionStatus.className = "connection-status status-disconnected";
+
+            conn.on('open', () => {
+                connectionStatus.textContent = "Conectado";
+                connectionStatus.className = "connection-status status-connected";
+                const notice = document.createElement('div');
+                notice.classList.add('message', 'other');
+                notice.textContent = "¡Conexión global establecida con éxito con tu amigo!";
+                chatMessages.appendChild(notice);
+                connectionMenu.classList.remove('active');
+            });
+
+            conn.on('data', (data) => {
+                const partnerMessageDiv = document.createElement('div');
+                partnerMessageDiv.classList.add('message', 'other');
+                partnerMessageDiv.textContent = `${data.name ? data.name : "Amigo"}: ${data.text}`;
+                chatMessages.appendChild(partnerMessageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+
+            conn.on('close', () => {
+                connectionStatus.textContent = "Desconectado";
+                connectionStatus.className = "connection-status status-disconnected";
+            });
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('chat_lang', lang);
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+
+            if (translations[lang]) {
+                messageInput.placeholder = translations[lang].inputPlaceholder;
+
+                if (profileName) {
+                    welcomeMessage.textContent = translations[lang].welcomeBack(profileName);
+                } else {
+                    welcomeMessage.textContent = translations[lang].welcomeText;
+                }
+            }
+        }
+
+        function applyFont(font) {
+            if (font === 'sans') {
+                document.documentElement.style.setProperty('--current-font', "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif");
+                document.documentElement.style.setProperty('--current-font-weight', 'normal');
+            } else if (font === 'serif') {
+                document.documentElement.style.setProperty('--current-font', '"Georgia", Cambria, "Times New Roman", Times, serif');
+                document.documentElement.style.setProperty('--current-font-weight', 'normal');
+            } else if (font === 'mono') {
+                document.documentElement.style.setProperty('--current-font', "Consolas, Monaco, 'Courier New', Courier, monospace");
+                document.documentElement.style.setProperty('--current-font-weight', 'normal');
+            } else if (font === 'comfortaa') {
+                document.documentElement.style.setProperty('--current-font', "'Comfortaa', cursive, sans-serif");
+                document.documentElement.style.setProperty('--current-font-weight', '700');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initPeer();
+
+            const savedName = localStorage.getItem('chat_profile_name');
+            const savedImage = localStorage.getItem('chat_profile_image');
+            const savedTheme = localStorage.getItem('chat_theme');
+            const savedFont = localStorage.getItem('chat_font');
+            const savedLang = localStorage.getItem('chat_lang');
+
+            if (savedLang) {
+                setLanguage(savedLang);
+            }
+
+            if (savedName) {
+                profileName = savedName;
+                profileNameInput.value = savedName;
+                welcomeMessage.textContent = translations[currentLang].welcomeBack(profileName);
+            }
+
+            if (savedImage) {
+                avatarBtn.style.backgroundImage = `url(${savedImage})`;
+            }
+
+            if (savedTheme) {
+                document.body.classList.remove('dark-mode', 'high-contrast');
+                if (savedTheme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else if (savedTheme === 'contrast') {
+                    document.body.classList.add('high-contrast');
+                }
+            }
+
+            if (savedFont) {
+                applyFont(savedFont);
+            }
+        });
+
+        // Botón de engranaje abre configuración/perfil
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeMenu.classList.toggle('active');
+            connectionMenu.classList.remove('active');
+        });
+
+        // Botón de más (+) abre el menú de conexión global
+        addChatBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            connectionMenu.classList.toggle('active');
+            themeMenu.classList.remove('active');
+        });
+
+        window.addEventListener('click', () => {
+            themeMenu.classList.remove('active');
+            connectionMenu.classList.remove('active');
+        });
+
+        themeMenu.addEventListener('click', (e) => e.stopPropagation());
+        connectionMenu.addEventListener('click', (e) => e.stopPropagation());
+
+        profileNameInput.addEventListener('input', (e) => {
+            profileName = e.target.value.trim();
+            localStorage.setItem('chat_profile_name', profileName);
+
+            const currentWelcome = document.getElementById('welcomeMessage');
+            if (currentWelcome) {
+                if (profileName) {
+                    currentWelcome.textContent = translations[currentLang].profileUpdated(profileName);
+                } else {
+                    currentWelcome.textContent = translations[currentLang].welcomeText;
+                }
+            }
+        });
+
+        profileImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const base64Image = event.target.result;
+                    avatarBtn.style.backgroundImage = `url(${base64Image})`;
+                    localStorage.setItem('chat_profile_image', base64Image);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        menuButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const theme = button.getAttribute('data-theme');
+                const font = button.getAttribute('data-font');
+                const lang = button.getAttribute('data-lang');
+
+                if (theme) {
+                    document.body.classList.remove('dark-mode', 'high-contrast');
+                    if (theme === 'dark') {
+                        document.body.classList.add('dark-mode');
+                        localStorage.setItem('chat_theme', 'dark');
+                    } else if (theme === 'contrast') {
+                        document.body.classList.add('high-contrast');
+                        localStorage.setItem('chat_theme', 'contrast');
+                    } else {
+                        localStorage.setItem('chat_theme', 'normal');
+                    }
+                }
+
+                if (font) {
+                    applyFont(font);
+                    localStorage.setItem('chat_font', font);
+                }
+
+                if (lang) {
+                    setLanguage(lang);
+                }
+
+                themeMenu.classList.remove('active');
+            });
+        });
+
+        chatForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const messageText = messageInput.value.trim();
+            if (messageText === '') return;
+
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.classList.add('message', 'user');
+            userMessageDiv.textContent = messageText;
+
+            chatMessages.appendChild(userMessageDiv);
+            messageInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (conn && conn.open) {
+                conn.send({
+                    name: profileName || "Anónimo",
+                    text: messageText
+                });
+            } else {
+                const warnDiv = document.createElement('div');
+                warnDiv.classList.add('message', 'other');
+                warnDiv.textContent = "[Aviso]: No estás conectado a nadie. Abre el menú del botón (+) para introducir el ID de tu amigo.";
+                chatMessages.appendChild(warnDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+    </script>
+
+</body>
+
+</html>
