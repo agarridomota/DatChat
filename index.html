@@ -2,8 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat P2P Multi-Conversación Global (100% Responsive)</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Chat P2P Multi-Conversación Global (Responsive Pro)</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
@@ -89,6 +90,7 @@
         body, html {
             width: 100%;
             height: 100%;
+            height: 100dvh; /* Altura dinámica real para móviles */
             background-color: var(--bg-color);
             color: var(--text-color);
             overflow: hidden;
@@ -97,6 +99,7 @@
         .app-container {
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             display: flex;
             background: var(--chat-bg);
             position: relative;
@@ -196,7 +199,7 @@
             padding: 15px;
             z-index: 100;
             width: 280px;
-            max-height: 80vh;
+            max-height: 75vh;
             overflow-y: auto;
             flex-direction: column;
             gap: 12px;
@@ -462,23 +465,26 @@
             padding: 20px;
         }
 
-        /* DISEÑO RESPONSIVO PARA MÓVILES Y TABLETAS (< 768px) */
+        /* DISEÑO RESPONSIVO PERFECTO PARA MÓVILES Y TABLETAS (< 768px) */
         @media screen and (max-width: 767px) {
             .app-container {
                 flex-direction: column-reverse;
             }
 
-            /* Barra fija superior o inferior adaptada para mostrar siempre Perfil, Ajustes y Añadir */
+            /* Barra inferior flotante adaptada que incluye la zona segura del móvil (circulo/cuadrado/flecha o barra gestual) */
             .sidebar {
                 width: 100%;
-                height: 64px;
+                height: calc(64px + env(safe-area-inset-bottom, 0px));
+                padding-bottom: env(safe-area-inset-bottom, 0px);
                 flex-direction: row;
                 justify-content: space-around;
                 align-items: center;
-                padding: 0 10px;
+                padding-left: 10px;
+                padding-right: 10px;
                 border-right: none;
                 border-top: 1px solid var(--sidebar-border);
                 background-color: var(--sidebar-bg);
+                flex-shrink: 0;
             }
 
             .sidebar-divider { display: none; }
@@ -487,16 +493,16 @@
             .dropdown-menu {
                 left: 10px;
                 right: 10px;
-                bottom: 74px;
+                bottom: calc(74px + env(safe-area-inset-bottom, 0px));
                 width: auto;
-                max-height: 65vh;
+                max-height: 60vh;
             }
-            #themeMenu { top: auto; bottom: 74px; }
+            #themeMenu { top: auto; bottom: calc(74px + env(safe-area-inset-bottom, 0px)); }
 
-            /* Panel de chats a pantalla completa en móvil */
+            /* Panel de lista de chats ajustado para ocupar exactamente el espacio libre sobre la barra inferior */
             .chat-list-panel {
                 width: 100%;
-                height: calc(100vh - 64px);
+                height: calc(100dvh - (64px + env(safe-area-inset-bottom, 0px)));
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -504,10 +510,10 @@
                 display: flex;
             }
 
-            /* Panel de mensajes oculto hasta que se seleccione un chat */
+            /* Panel de mensajes adaptado al espacio visible exacto */
             .chat-container {
                 width: 100%;
-                height: calc(100vh - 64px);
+                height: calc(100dvh - (64px + env(safe-area-inset-bottom, 0px)));
                 position: absolute;
                 top: 0;
                 left: 100%;
@@ -534,7 +540,7 @@
 <body>
 
     <div class="app-container" id="appContainer">
-        <!-- Barra lateral / inferior con Perfil, Ajustes y Añadir Chat -->
+        <!-- Barra lateral (PC) / Barra inferior de herramientas (Móvil, protegida contra la barra de navegación del sistema) -->
         <div class="sidebar">
             <div class="sidebar-avatar-container" id="avatarMenuBtn" title="Tu Perfil y Configuración">
                 <div class="sidebar-avatar" id="avatarBtn"></div>
