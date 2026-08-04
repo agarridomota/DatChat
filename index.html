@@ -434,24 +434,25 @@
                     <label data-i18n="imageLabel">Foto de perfil:</label>
                     <input type="file" id="profileImageInput" accept="image/*">
                 </div>
-<div class="menu-section-title" data-i18n="screenModeTitle">Modo de Pantalla</div>
-<button class="theme-btn" data-theme="normal" data-i18n="modeNormal">Modo Normal</button>
-<button class="theme-btn" data-theme="dark" data-i18n="modeDark">Modo Oscuro</button>
-<button class="theme-btn" data-theme="contrast" data-i18n="modeContrast">Contraste Alto</button>
 
-<div class="menu-section-title" data-i18n="fontTitle">Tipo de Letra</div>
-<button class="theme-btn" data-font="sans">Sans-Serif</button>
-<button class="theme-btn" data-font="serif">Serif (Clásica)</button>
-<button class="theme-btn" data-font="mono">Monospace</button>
-<button class="theme-btn" data-font="comfortaa">Comfortaa (Negrita)</button>
+                <div class="menu-section-title" data-i18n="screenModeTitle">Modo de Pantalla</div>
+                <button class="theme-btn" data-theme="normal" data-i18n="modeNormal">Modo Normal</button>
+                <button class="theme-btn" data-theme="dark" data-i18n="modeDark">Modo Oscuro</button>
+                <button class="theme-btn" data-theme="contrast" data-i18n="modeContrast">Contraste Alto</button>
+                
+                <div class="menu-section-title" data-i18n="fontTitle">Tipo de Letra</div>
+                <button class="theme-btn" data-font="sans">Sans-Serif</button>
+                <button class="theme-btn" data-font="serif">Serif (Clásica)</button>
+                <button class="theme-btn" data-font="mono">Monospace</button>
+                <button class="theme-btn" data-font="comfortaa">Comfortaa (Negrita)</button>
 
-<div class="menu-section-title" data-i18n="langTitle">Idioma</div>
-<button class="theme-btn" data-lang="es">Español</button>
-<button class="theme-btn" data-lang="en">English</button>
-<button class="theme-btn" data-lang="pt">Português</button>
-<button class="theme-btn" data-lang="fr">Français</button>
-<button class="theme-btn" data-lang="it">Italiano</button>
-<button class="theme-btn" data-lang="de">Deutsch</button>
+                <div class="menu-section-title" data-i18n="langTitle">Idioma</div>
+                <button class="theme-btn" data-lang="es">Español</button>
+                <button class="theme-btn" data-lang="en">English</button>
+                <button class="theme-btn" data-lang="pt">Português</button>
+                <button class="theme-btn" data-lang="fr">Français</button>
+                <button class="theme-btn" data-lang="it">Italiano</button>
+                <button class="theme-btn" data-lang="de">Deutsch</button>
             </div>
 
             <!-- Menú Conexión -->
@@ -613,19 +614,19 @@
             initPeer(savedId);
         });
 
-                function saveHistoryToStorage() {
-                    let serializable = {};
-                    for (let id in activeConnections) {
-                        serializable[id] = {
-                            name: activeConnections[id].name,
-                            lastMessage: activeConnections[id].lastMessage,
-                            messages: activeConnections[id].messages
-                        };
-                    }
-                    localStorage.setItem('multi_chat_history', JSON.stringify(serializable));
+            function saveHistoryToStorage() {
+                let serializable = {};
+                for (let id in activeConnections) {
+                    serializable[id] = {
+                        name: activeConnections[id].name,
+                        lastMessage: activeConnections[id].lastMessage,
+                        messages: activeConnections[id].messages
+                    };
                 }
+                localStorage.setItem('multi_chat_history', JSON.stringify(serializable));
+            }
 
-                function initPeer(savedId) {
+            function initPeer(savedId) {
             peer = savedId ? new Peer(savedId, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } }) : new Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
 
             peer.on('open', (id) => {
@@ -785,14 +786,14 @@
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = function (event) {
-                        const base64Image = event.target.result;
-                        avatarBtn.style.backgroundImage = `url(${base64Image})`;
-                        localStorage.setItem('multi_chat_image', base64Image);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
+                reader.onload = function (event) {
+                    const base64Image = event.target.result;
+                    avatarBtn.style.backgroundImage = `url(${base64Image})`;
+                    localStorage.setItem('multi_chat_image', base64Image);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
             document.querySelectorAll('.theme-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
