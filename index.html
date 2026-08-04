@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat P2P Multi-Conversación Global (Responsive)</title>
+    <title>Chat P2P Multi-Conversación Global (100% Responsive)</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
@@ -102,15 +102,15 @@
             position: relative;
         }
 
-        /* Barra lateral de herramientas */
+        /* Barra lateral de herramientas (Escritorio) */
         .sidebar {
-            width: 70px;
+            width: 76px;
             background-color: var(--sidebar-bg);
             border-right: 1px solid var(--sidebar-border);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 15px;
+            padding: 15px 0;
             gap: 15px;
             position: relative;
             z-index: 20;
@@ -119,11 +119,12 @@
 
         .sidebar-avatar-container {
             position: relative;
+            cursor: pointer;
         }
 
         .sidebar-avatar {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             background-color: var(--avatar-bg);
             border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -133,14 +134,14 @@
 
         .sidebar-avatar-number {
             position: absolute;
-            bottom: -2px;
-            right: -2px;
+            bottom: -3px;
+            right: -3px;
             background-color: var(--btn-bg);
             color: #ffffff;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-weight: bold;
-            padding: 1px 4px;
-            border-radius: 8px;
+            padding: 1px 3px;
+            border-radius: 6px;
             border: 2px solid var(--sidebar-bg);
         }
 
@@ -152,10 +153,14 @@
             justify-content: center;
             align-items: center;
             transition: transform 0.2s ease;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
         }
 
         .sidebar-settings:hover, .sidebar-add-btn:hover {
-            transform: scale(1.1);
+            background-color: var(--sidebar-border);
+            transform: scale(1.05);
         }
 
         .sidebar-settings svg {
@@ -166,9 +171,8 @@
 
         .sidebar-add-btn {
             color: var(--icon-color);
-            font-size: 2.2rem;
+            font-size: 2rem;
             line-height: 1;
-            margin-bottom: 10px;
         }
         .sidebar-add-btn:hover { color: var(--text-color); }
 
@@ -177,29 +181,30 @@
             height: 2px;
             background-color: var(--divider-color);
             margin-top: auto;
+            margin-bottom: 5px;
         }
 
-        /* Menús flotantes adaptados */
+        /* Menús flotantes generales */
         .dropdown-menu {
             display: none;
             position: absolute;
-            left: 80px;
+            left: 85px;
             background-color: var(--sidebar-bg);
             border: 1px solid var(--sidebar-border);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            padding: 15px;
             z-index: 100;
-            width: 260px;
+            width: 280px;
             max-height: 80vh;
             overflow-y: auto;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .dropdown-menu.active { display: flex; }
 
-        #themeMenu { top: 60px; }
+        #themeMenu { top: 15px; }
         #connectionMenu { bottom: 15px; }
 
         .menu-section-title {
@@ -208,16 +213,16 @@
             text-transform: uppercase;
             color: var(--icon-color);
             border-bottom: 1px solid var(--sidebar-border);
-            padding-bottom: 2px;
-            margin-top: 5px;
+            padding-bottom: 3px;
+            margin-top: 4px;
         }
 
         .theme-btn, .profile-input-group input[type="text"] {
             background: none;
             border: 1px solid var(--sidebar-border);
-            padding: 8px 10px;
+            padding: 9px 12px;
             text-align: left;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 0.9rem;
             color: var(--text-color);
@@ -230,12 +235,12 @@
             flex-direction: column;
             gap: 5px;
         }
-        .profile-input-group label { font-size: 0.8rem; }
+        .profile-input-group label { font-size: 0.8rem; font-weight: bold; }
         .profile-input-group input[type="file"] { font-size: 0.8rem; color: var(--text-color); }
 
         .connection-status {
             font-size: 0.75rem;
-            padding: 4px 8px;
+            padding: 5px 8px;
             border-radius: 4px;
             text-align: center;
             font-weight: bold;
@@ -243,11 +248,11 @@
         .status-ready { background-color: #4ade80; color: #fff; }
 
         .my-id-box {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             background: var(--input-bg);
             border: 1px solid var(--sidebar-border);
-            padding: 6px;
-            border-radius: 4px;
+            padding: 8px;
+            border-radius: 6px;
             word-break: break-all;
             text-align: center;
             font-weight: bold;
@@ -257,7 +262,7 @@
 
         /* Panel de Lista de Conversaciones */
         .chat-list-panel {
-            width: 260px;
+            width: 280px;
             background-color: var(--sidebar-bg);
             border-right: 1px solid var(--sidebar-border);
             display: flex;
@@ -266,9 +271,9 @@
         }
 
         .chat-list-header {
-            padding: 15px;
+            padding: 16px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             border-bottom: 1px solid var(--sidebar-border);
             display: flex;
             justify-content: space-between;
@@ -283,7 +288,7 @@
         }
 
         .chat-item {
-            padding: 12px 15px;
+            padding: 12px 16px;
             cursor: pointer;
             border-bottom: 1px solid var(--sidebar-border);
             display: flex;
@@ -324,7 +329,7 @@
             border: none;
             color: var(--icon-color);
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             padding: 6px;
         }
         .chat-item-delete:hover { color: #ef4444; }
@@ -340,7 +345,7 @@
         }
 
         .chat-header-bar {
-            padding: 12px 15px;
+            padding: 14px 16px;
             border-bottom: 1px solid var(--sidebar-border);
             font-weight: bold;
             font-size: 0.95rem;
@@ -357,15 +362,15 @@
             border: none;
             cursor: pointer;
             color: var(--text-color);
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             align-items: center;
-            margin-right: 5px;
+            margin-right: 8px;
         }
 
         .rename-btn {
             background: none;
             border: 1px solid var(--sidebar-border);
-            padding: 4px 8px;
+            padding: 5px 10px;
             font-size: 0.75rem;
             border-radius: 4px;
             cursor: pointer;
@@ -376,7 +381,7 @@
 
         .chat-messages {
             flex: 1;
-            padding: 15px;
+            padding: 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -412,7 +417,7 @@
 
         .chat-input-area {
             display: flex;
-            padding: 10px 15px;
+            padding: 12px 16px;
             background-color: var(--input-area-bg);
             border-top: 1px solid var(--sidebar-border);
             align-items: center;
@@ -463,32 +468,35 @@
                 flex-direction: column-reverse;
             }
 
+            /* Barra fija superior o inferior adaptada para mostrar siempre Perfil, Ajustes y Añadir */
             .sidebar {
                 width: 100%;
-                height: 60px;
+                height: 64px;
                 flex-direction: row;
                 justify-content: space-around;
                 align-items: center;
                 padding: 0 10px;
                 border-right: none;
                 border-top: 1px solid var(--sidebar-border);
+                background-color: var(--sidebar-bg);
             }
 
             .sidebar-divider { display: none; }
-            .sidebar-add-btn { margin-bottom: 0; }
+            .sidebar-avatar { width: 38px; height: 38px; }
 
             .dropdown-menu {
                 left: 10px;
                 right: 10px;
-                bottom: 70px;
+                bottom: 74px;
                 width: auto;
+                max-height: 65vh;
             }
-            #themeMenu { top: auto; bottom: 70px; }
+            #themeMenu { top: auto; bottom: 74px; }
 
-            /* Ocultar lista de chats o contenedor de chat según estado en móvil */
+            /* Panel de chats a pantalla completa en móvil */
             .chat-list-panel {
                 width: 100%;
-                height: calc(100vh - 60px);
+                height: calc(100vh - 64px);
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -496,14 +504,15 @@
                 display: flex;
             }
 
+            /* Panel de mensajes oculto hasta que se seleccione un chat */
             .chat-container {
                 width: 100%;
-                height: calc(100vh - 60px);
+                height: calc(100vh - 64px);
                 position: absolute;
                 top: 0;
                 left: 100%;
                 z-index: 6;
-                transition: left 0.3s ease;
+                transition: left 0.25s ease-in-out;
             }
 
             .app-container.chat-active .chat-container {
@@ -525,25 +534,26 @@
 <body>
 
     <div class="app-container" id="appContainer">
-        <!-- Barra lateral -->
+        <!-- Barra lateral / inferior con Perfil, Ajustes y Añadir Chat -->
         <div class="sidebar">
-            <div class="sidebar-avatar-container" title="Tu Perfil">
+            <div class="sidebar-avatar-container" id="avatarMenuBtn" title="Tu Perfil y Configuración">
                 <div class="sidebar-avatar" id="avatarBtn"></div>
                 <div class="sidebar-avatar-number" id="avatarNumber">#...</div>
             </div>
 
-            <button class="sidebar-settings" id="settingsBtn" title="Configuración">
+            <button class="sidebar-settings" id="settingsBtn" title="Configuración y Temas">
                 <svg viewBox="0 0 24 24">
                     <path
                         d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.97 19.05,5.05L16.56,6.05C16.04,5.65 15.48,5.32 14.87,5.07L14.49,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.51,2.42L9.13,5.07C8.52,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.97 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.52,18.68 9.13,18.93L9.51,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.49,21.58L14.87,18.93C15.48,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
                 </svg>
             </button>
 
-            <!-- Menú Configuración -->
+            <!-- Menú Configuración y Perfil -->
             <div class="dropdown-menu" id="themeMenu">
-                <div class="menu-section-title" data-i18n="profileTitle">Perfil</div>
+                <div class="menu-section-title" data-i18n="profileTitle">Perfil y Tu ID</div>
+                <div class="my-id-box" id="myFullIdBox" title="Haz clic para copiar tu ID">Cargando...</div>
                 <div class="profile-input-group">
-                    <label data-i18n="nameLabel">Nombre:</label>
+                    <label data-i18n="nameLabel">Tu Nombre:</label>
                     <input type="text" id="profileNameInput" placeholder="Tu nombre...">
                 </div>
                 <div class="profile-input-group">
@@ -560,7 +570,7 @@
                 <button class="theme-btn" data-font="sans">Sans-Serif</button>
                 <button class="theme-btn" data-font="serif">Serif (Clásica)</button>
                 <button class="theme-btn" data-font="mono">Monospace</button>
-                <button class="theme-btn" data-font="comfortaa">Comfortaa (Negrita)</button>
+                <button class="theme-btn" data-font="comfortaa">Comfortaa</button>
 
                 <div class="menu-section-title" data-i18n="langTitle">Idioma</div>
                 <button class="theme-btn" data-lang="es">Español</button>
@@ -571,17 +581,16 @@
                 <button class="theme-btn" data-lang="de">Deutsch</button>
             </div>
 
-            <!-- Menú Conexión -->
+            <!-- Menú Conexión (Nuevo Chat) -->
             <div class="dropdown-menu" id="connectionMenu">
-                <div class="menu-section-title">Tu ID Global Permanente</div>
-                <div class="my-id-box" id="myFullIdBox" title="Copiar ID">Cargando...</div>
-                <div class="connection-status status-ready">Listo para recibir chats</div>
+                <div class="menu-section-title">Nuevo Chat P2P</div>
+                <div class="connection-status status-ready">Conectado a la Red Global</div>
                 <div class="profile-input-group">
                     <label>ID del amigo:</label>
                     <input type="text" id="peerIdInput" placeholder="Pega el ID aquí...">
                 </div>
-                <button class="theme-btn" id="connectBtn" style="text-align:center; background:var(--btn-bg); color:#fff;">Conectar
-                    Nuevo Chat</button>
+                <button class="theme-btn" id="connectBtn"
+                    style="text-align:center; background:var(--btn-bg); color:#fff; font-weight:bold;">Conectar Conversación</button>
             </div>
 
             <div class="sidebar-divider"></div>
@@ -593,7 +602,7 @@
             <div class="chat-list-header">
                 <span data-i18n="conversationsTitle">Conversaciones</span>
                 <span id="chatCount"
-                    style="font-size:0.75rem; background:var(--btn-bg); color:#fff; padding:2px 6px; border-radius:10px;">0</span>
+                    style="font-size:0.75rem; background:var(--btn-bg); color:#fff; padding:2px 8px; border-radius:10px;">0</span>
             </div>
             <div class="chat-items" id="chatItemsList"></div>
         </div>
@@ -603,15 +612,15 @@
             <div class="chat-header-bar">
                 <div style="display:flex; align-items:center; overflow:hidden;">
                     <button class="back-to-chats-btn" id="backToChatsBtn">&#8592;</button>
-                    <span id="activeChatTitleText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Selecciona
-                        un chat</span>
+                    <span id="activeChatTitleText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Selecciona un
+                        chat</span>
                 </div>
                 <button class="rename-btn" id="renameChatBtn" style="display:none;" data-i18n="renameBtn">Cambiar Nombre</button>
             </div>
             
             <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;" id="chatAreaWrapper">
                 <div class="no-chat-selected" id="noChatSelected" data-i18n="welcomeText">
-                    No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para unirte a múltiples chats en paralelo.
+                    No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para añadir o unirte a una conversación.
                 </div>
                 
                 <div id="messagesContainerWrapper" style="flex:1; display:flex; flex-direction:column; overflow:hidden;"></div>
@@ -634,6 +643,7 @@
             let activePeerId = null;
 
         const avatarBtn = document.getElementById('avatarBtn');
+            const avatarMenuBtn = document.getElementById('avatarMenuBtn');
         const avatarNumber = document.getElementById('avatarNumber');
             const settingsBtn = document.getElementById('settingsBtn');
         const addChatBtn = document.getElementById('addChatBtn');
@@ -656,12 +666,12 @@
             const profileImageInput = document.getElementById('profileImageInput');
 
             const translations = {
-            es: { profileTitle: "Perfil", nameLabel: "Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversaciones", renameBtn: "Cambiar Nombre", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para unirte a múltiples chats en paralelo.", inputPlaceholder: "Escribe un mensaje...", selectPrompt: "Selecciona un chat" },
-            en: { profileTitle: "Profile", nameLabel: "Name:", imageLabel: "Profile Picture:", screenModeTitle: "Screen Mode", modeNormal: "Normal Mode", modeDark: "Dark Mode", modeContrast: "High Contrast", fontTitle: "Font Family", langTitle: "Language", conversationsTitle: "Conversations", renameBtn: "Rename", welcomeText: "No chat selected.<br>Click the **`+`** button to join multiple parallel chats.", inputPlaceholder: "Type a message...", selectPrompt: "Select a chat" },
-            pt: { profileTitle: "Perfil", nameLabel: "Nome:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Tela", modeNormal: "Modo Normal", modeDark: "Modo Escuro", modeContrast: "Alto Contraste", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversações", renameBtn: "Renomear", welcomeText: "Nenhum chat selecionado.<br>Clique no botão **`+`** para iniciar vários chats.", inputPlaceholder: "Digite uma mensagem...", selectPrompt: "Selecione um chat" },
-            fr: { profileTitle: "Profil", nameLabel: "Nom :", imageLabel: "Photo de profil :", screenModeTitle: "Mode d'affichage", modeNormal: "Mode Normal", modeDark: "Mode Sombre", modeContrast: "Contraste Élevé", fontTitle: "Police", langTitle: "Langue", conversationsTitle: "Conversations", renameBtn: "Renommer", welcomeText: "Aucun chat sélectionné.<br>Cliquez sur **`+`** pour discuter.", inputPlaceholder: "Tapez un message...", selectPrompt: "Sélectionnez un chat" },
-            it: { profileTitle: "Profilo", nameLabel: "Nome:", imageLabel: "Foto profilo:", screenModeTitle: "Modalità Schermo", modeNormal: "Modale Normale", modeDark: "Modalità Scura", modeContrast: "Alto Contrasto", fontTitle: "Carattere", langTitle: "Lingua", conversationsTitle: "Conversazioni", renameBtn: "Rinomina", welcomeText: "Nessuna chat selezionata.<br>Clicca **`+`** per chattare.", inputPlaceholder: "Scrivi un messaggio...", selectPrompt: "Seleziona una chat" },
-            de: { profileTitle: "Profil", nameLabel: "Name:", imageLabel: "Profilbild:", screenModeTitle: "Bildschirmmodus", modeNormal: "Normaler Modus", modeDark: "Dunkler Modus", modeContrast: "Hoher Kontrast", fontTitle: "Schriftart", langTitle: "Sprache", conversationsTitle: "Konversationen", renameBtn: "Umbenennen", welcomeText: "Kein Chat ausgewählt.<br>Klicken Sie auf **`+`**.", inputPlaceholder: "Nachricht schreiben...", selectPrompt: "Wählen Sie einen Chat aus" }
+            es: { profileTitle: "Perfil y Tu ID", nameLabel: "Tu Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversaciones", renameBtn: "Cambiar Nombre", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para añadir o unirte a una conversación.", inputPlaceholder: "Escribe un mensaje...", selectPrompt: "Selecciona un chat" },
+            en: { profileTitle: "Profile & ID", nameLabel: "Your Name:", imageLabel: "Profile Picture:", screenModeTitle: "Screen Mode", modeNormal: "Normal Mode", modeDark: "Dark Mode", modeContrast: "High Contrast", fontTitle: "Font Family", langTitle: "Language", conversationsTitle: "Conversations", renameBtn: "Rename", welcomeText: "No chat selected.<br>Click the **`+`** button to join a conversation.", inputPlaceholder: "Type a message...", selectPrompt: "Select a chat" },
+            pt: { profileTitle: "Perfil e ID", nameLabel: "Seu Nome:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Tela", modeNormal: "Modo Normal", modeDark: "Modo Escuro", modeContrast: "Alto Contraste", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversações", renameBtn: "Renomear", welcomeText: "Nenhum chat selecionado.<br>Clique no botão **`+`** para iniciar um chat.", inputPlaceholder: "Digite uma mensagem...", selectPrompt: "Selecione um chat" },
+            fr: { profileTitle: "Profil & ID", nameLabel: "Votre Nom :", imageLabel: "Photo de profil :", screenModeTitle: "Mode d'affichage", modeNormal: "Mode Normal", modeDark: "Mode Sombre", modeContrast: "Contraste Élevé", fontTitle: "Police", langTitle: "Langue", conversationsTitle: "Conversations", renameBtn: "Renommer", welcomeText: "Aucun chat sélectionné.<br>Cliquez sur **`+`** pour discuter.", inputPlaceholder: "Tapez un message...", selectPrompt: "Sélectionnez un chat" },
+            it: { profileTitle: "Profilo e ID", nameLabel: "Il tuo Nome:", imageLabel: "Foto profilo:", screenModeTitle: "Modalità Schermo", modeNormal: "Modale Normale", modeDark: "Modalità Scura", modeContrast: "Alto Contrasto", fontTitle: "Carattere", langTitle: "Lingua", conversationsTitle: "Conversazioni", renameBtn: "Rinomina", welcomeText: "Nessuna chat selezionata.<br>Clicca **`+`** per chattare.", inputPlaceholder: "Scrivi un messaggio...", selectPrompt: "Seleziona una chat" },
+            de: { profileTitle: "Profil & ID", nameLabel: "Ihr Name:", imageLabel: "Profilbild:", screenModeTitle: "Bildschirmmodus", modeNormal: "Normaler Modus", modeDark: "Dunkler Modus", modeContrast: "Hoher Kontrast", fontTitle: "Schriftart", langTitle: "Sprache", conversationsTitle: "Konversationen", renameBtn: "Umbenennen", welcomeText: "Kein Chat ausgewählt.<br>Klicken Sie auf **`+`**.", inputPlaceholder: "Nachricht schreiben...", selectPrompt: "Wählen Sie einen Chat aus" }
         };
 
             function setLanguage(lang) {
@@ -1009,8 +1019,10 @@
             });
         });
 
+            avatarMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); themeMenu.classList.toggle('active'); connectionMenu.classList.remove('active'); });
             settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); themeMenu.classList.toggle('active'); connectionMenu.classList.remove('active'); });
             addChatBtn.addEventListener('click', (e) => { e.stopPropagation(); connectionMenu.classList.toggle('active'); themeMenu.classList.remove('active'); });
+
             window.addEventListener('click', () => { themeMenu.classList.remove('active'); connectionMenu.classList.remove('active'); });
             themeMenu.addEventListener('click', (e) => e.stopPropagation());
             connectionMenu.addEventListener('click', (e) => e.stopPropagation());
