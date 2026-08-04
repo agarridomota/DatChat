@@ -465,7 +465,7 @@
                 <button class="theme-btn" data-lang="de">Deutsch</button>
             </div>
 
-            <!-- Menú de Conexión P2P Global (Movido al botón +) -->
+            <!-- Menú de Conexión P2P Global en el botón de más (+) -->
             <div class="dropdown-menu" id="connectionMenu">
                 <div class="menu-section-title">Tu ID para conectar (Click para copiar)</div>
                 <div class="my-id-box" id="myFullIdBox" title="Haz clic para copiar">Cargando ID...</div>
@@ -626,8 +626,6 @@
             }
         };
 
-        // Inicialización de PeerJS optimizada con servidores STUN/TURN públicos globales
-        // Esto permite atravesar NATs, firewalls y redes WiFi completamente distintas (WAN global).
         function initPeer() {
             let savedPeerId = localStorage.getItem('chat_peer_id');
 
@@ -664,23 +662,7 @@
             });
         }
 
-        // Copiar ID global al portapapeles haciendo clic en la caja de texto del menú (+)
-        myFullIdBox.addEventListener('click', () => {
-            const idText = myFullIdBox.textContent;
-            if (idText && idText !== "Cargando ID...") {
-                navigator.clipboard.writeText(idText).then(() => {
-                    alert("¡ID global copiado al portapapeles!\n\n" + idText);
-                });
-            }
-        });
-
-        connectBtn.addEventListener('click', () => {
-            const friendId = peerIdInput.value.trim();
-            if (!friendId) return;
-            conn = peer.connect(friendId);
-            setupConnection();
-        });
-
+            // Configurar los eventos de la conexión activa de forma limpia
         function setupConnection() {
             connectionStatus.textContent = "Conectando...";
             connectionStatus.className = "connection-status status-disconnected";
@@ -695,10 +677,12 @@
                 connectionMenu.classList.remove('active');
             });
 
+            // AQUÍ ESTÁ LA SOLUCIÓN: Solo los datos entrantes del amigo se imprimen como 'other'
             conn.on('data', (data) => {
                 const partnerMessageDiv = document.createElement('div');
                 partnerMessageDiv.classList.add('message', 'other');
-                partnerMessageDiv.textContent = `${data.name ? data.name : "Amigo"}: ${data.text}`;
+                const senderName = data.name ? data.name : "Amigo";
+                partnerMessageDiv.textContent = `${senderName}: ${data.text}`;
                 chatMessages.appendChild(partnerMessageDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             });
@@ -708,6 +692,22 @@
                 connectionStatus.className = "connection-status status-disconnected";
             });
         }
+
+            myFullIdBox.addEventListener('click', () => {
+                const idText = myFullIdBox.textContent;
+                if (idText && idText !== "Cargando ID...") {
+                    navigator.clipboard.writeText(idText).then(() => {
+                        alert("¡ID global copiado al portapapeles!\n\n" + idText);
+                    });
+                }
+            });
+
+            connectBtn.addEventListener('click', () => {
+                const friendId = peerIdInput.value.trim();
+                if (!friendId) return;
+                conn = peer.connect(friendId);
+                setupConnection();
+            });
 
         function setLanguage(lang) {
             currentLang = lang;
@@ -784,14 +784,12 @@
             }
         });
 
-        // Botón de engranaje abre configuración/perfil
         settingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             themeMenu.classList.toggle('active');
             connectionMenu.classList.remove('active');
         });
 
-        // Botón de más (+) abre el menú de conexión global
         addChatBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             connectionMenu.classList.toggle('active');
@@ -810,7 +808,7 @@
             profileName = e.target.value.trim();
             localStorage.setItem('chat_profile_name', profileName);
 
-            const currentWelcome = document.getElementById('welcomeMessage');
+            const currentWelcome = document.getElementById('messageInput') ? document.getElementById('welcomeMessage') : null;
             if (currentWelcome) {
                 if (profileName) {
                     currentWelcome.textContent = translations[currentLang].profileUpdated(profileName);
@@ -865,6 +863,7 @@
             });
         });
 
+            // Al enviar un mensaje, se pinta en tu pantalla como tuyo ('user') y se transmite por la red privada
         chatForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
