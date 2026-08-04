@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chat P2P Multi-Conversación y Grupos (Responsive Pro)</title>
+    <title>Chat P2P Multi-Conversación, Grupos y Contactos (Responsive Pro)</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
@@ -198,8 +198,8 @@
             box-shadow: 0 8px 24px rgba(0,0,0,0.2);
             padding: 15px;
             z-index: 100;
-            width: 280px;
-            max-height: 75vh;
+            width: 300px;
+            max-height: 80vh;
             overflow-y: auto;
             flex-direction: column;
             gap: 12px;
@@ -220,7 +220,7 @@
             margin-top: 4px;
         }
 
-        .theme-btn, .profile-input-group input[type="text"] {
+        .theme-btn, .profile-input-group input[type="text"], .profile-input-group select {
             background: none;
             border: 1px solid var(--sidebar-border);
             padding: 9px 12px;
@@ -232,6 +232,7 @@
             width: 100%;
         }
         .theme-btn:hover { background-color: var(--sidebar-border); }
+        .profile-input-group select { background-color: var(--input-bg); }
 
         .profile-input-group {
             display: flex;
@@ -551,10 +552,17 @@
                 </svg>
             </button>
 
-            <!-- Menú Configuración y Perfil -->
+            <!-- Menú Configuración, Perfil y Vinculación -->
             <div class="dropdown-menu" id="themeMenu">
                 <div class="menu-section-title" data-i18n="profileTitle">Perfil y Tu ID</div>
-                <div class="my-id-box" id="myFullIdBox" title="Haz clic para copiar tu ID">Cargando...</div>
+                <div class="my-id-box" id="myFullIdBox" title="Haz clic para copiar tu ID o Enlace de Cuenta">Cargando...</div>
+                <div class="profile-input-group">
+                    <label>Vincular Cuenta (ID Guardado / Restaurar):</label>
+                    <input type="text" id="linkAccountIdInput" placeholder="Pega tu ID anterior aquí...">
+                    <button class="theme-btn" id="linkAccountBtn"
+                        style="text-align:center; background:var(--btn-bg); color:#fff; font-weight:bold; margin-top:5px;">Vincular
+                        ID</button>
+                </div>
                 <div class="profile-input-group">
                     <label data-i18n="nameLabel">Tu Nombre:</label>
                     <input type="text" id="profileNameInput" placeholder="Tu nombre...">
@@ -584,12 +592,20 @@
                 <button class="theme-btn" data-lang="de">Deutsch</button>
             </div>
 
-            <!-- Menú Conexión y Creación de Grupos -->
+            <!-- Menú Conexión, Agenda y Grupos -->
             <div class="dropdown-menu" id="connectionMenu">
                 <div class="menu-section-title">Nuevo Chat P2P</div>
                 <div class="connection-status status-ready">Conectado a la Red Global</div>
+                
                 <div class="profile-input-group">
-                    <label>ID del amigo:</label>
+                    <label>Seleccionar de Contactos Guardados:</label>
+                    <select id="savedContactsSelect">
+                        <option value="">-- Elige un contacto guardado --</option>
+                    </select>
+                    </div>
+                    
+                    <div class="profile-input-group">
+                        <label>O ID del amigo:</label>
                     <input type="text" id="peerIdInput" placeholder="Pega el ID aquí...">
                 </div>
                 <button class="theme-btn" id="connectBtn"
@@ -601,8 +617,8 @@
                     <input type="text" id="groupNameInput" placeholder="Ej. Amigos del Gaming...">
                 </div>
                 <div class="profile-input-group">
-                    <label>IDs de los amigos (separados por comas):</label>
-                    <input type="text" id="groupPeersInput" placeholder="id1, id2, id3...">
+                    <label>Añadir desde Contactos o IDs (separados por comas):</label>
+                    <input type="text" id="groupPeersInput" placeholder="id1, id2...">
                 </div>
                 <button class="theme-btn" id="createGroupBtn"
                     style="text-align:center; background:#10b981; color:#fff; font-weight:bold;">Crear Grupo</button>
@@ -657,6 +673,7 @@
             let currentLang = "es";
             let activeConnections = {};
             let activePeerId = null;
+            let savedContacts = {}; // Agenda de contactos guardados
 
         const avatarBtn = document.getElementById('avatarBtn');
             const avatarMenuBtn = document.getElementById('avatarMenuBtn');
@@ -666,8 +683,11 @@
         const themeMenu = document.getElementById('themeMenu');
         const connectionMenu = document.getElementById('connectionMenu');
             const myFullIdBox = document.getElementById('myFullIdBox');
+            const linkAccountIdInput = document.getElementById('linkAccountIdInput');
+            const linkAccountBtn = document.getElementById('linkAccountBtn');
         const peerIdInput = document.getElementById('peerIdInput');
         const connectBtn = document.getElementById('connectBtn');
+            const savedContactsSelect = document.getElementById('savedContactsSelect');
             const groupNameInput = document.getElementById('groupNameInput');
             const groupPeersInput = document.getElementById('groupPeersInput');
             const createGroupBtn = document.getElementById('createGroupBtn');
@@ -731,6 +751,15 @@
             let savedFont = localStorage.getItem('multi_chat_font');
             let savedLang = localStorage.getItem('multi_chat_lang');
             let savedChats = localStorage.getItem('multi_chat_history');
+            let storedContacts = localStorage.getItem('multi_chat_contacts');
+
+            // Comprobar si viene un ID vinculado por URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const linkParam = urlParams.get('link');
+            if (linkParam) {
+                localStorage.setItem('multi_chat_permanent_id', linkParam);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
 
             let persistentId = localStorage.getItem('multi_chat_permanent_id');
             if (!persistentId) {
@@ -758,6 +787,9 @@
             if (savedFont) {
                 applyFont(savedFont);
             }
+            if (storedContacts) {
+                try { savedContacts = JSON.parse(storedContacts); } catch (e) { }
+            }
             if (savedChats) {
                 try {
                     let parsed = JSON.parse(savedChats);
@@ -772,7 +804,12 @@
                             lastMessage: parsed[id].lastMessage,
                             messages: parsed[id].messages
                         };
+                        // Registrar en agenda si es chat individual
+                        if (!parsed[id].isGroup) {
+                            savedContacts[id] = parsed[id].customName || parsed[id].name;
+                        }
                     }
+                    updateContactsSelect();
                     updateChatListUI();
                 } catch (e) { }
             }
@@ -791,9 +828,42 @@
                     lastMessage: activeConnections[id].lastMessage,
                     messages: activeConnections[id].messages
                 };
+                if (!activeConnections[id].isGroup) {
+                    savedContacts[id] = activeConnections[id].customName || activeConnections[id].name;
+                }
             }
             localStorage.setItem('multi_chat_history', JSON.stringify(serializable));
+            localStorage.setItem('multi_chat_contacts', JSON.stringify(savedContacts));
+            updateContactsSelect();
         }
+
+            function updateContactsSelect() {
+                savedContactsSelect.innerHTML = '<option value="">-- Elige un contacto guardado --</option>';
+                for (let id in savedContacts) {
+                    let opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = `${savedContacts[id]} (${id.substring(0, 6)}...)`;
+                    savedContactsSelect.appendChild(opt);
+                }
+            }
+
+            savedContactsSelect.addEventListener('change', () => {
+                if (savedContactsSelect.value) {
+                    peerIdInput.value = savedContactsSelect.value;
+                }
+            });
+
+            linkAccountBtn.addEventListener('click', () => {
+                let targetId = linkAccountIdInput.value.trim();
+                if (!targetId) {
+                    alert("Introduce un ID válido para vincular.");
+                    return;
+                }
+                if (confirm("¿Estás seguro de vincular esta cuenta? Se reiniciará la sesión con el ID guardado.")) {
+                    localStorage.setItem('multi_chat_permanent_id', targetId);
+                    location.reload();
+                }
+            });
 
             function initPeer(permanentId) {
                 peer = new Peer(permanentId, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
@@ -811,7 +881,6 @@
             function registerConnection(conn) {
                 const remoteId = conn.peer;
         
-            // Comprobar si pertenece a algún grupo existente
             for (let id in activeConnections) {
                 if (activeConnections[id].isGroup && activeConnections[id].peers.includes(remoteId)) {
                     activeConnections[id].conns[remoteId] = conn;
@@ -831,15 +900,16 @@
                     lastMessage: "Conectado",
                     messages: []
                 };
+                savedContacts[remoteId] = activeConnections[remoteId].name;
             }
 
             conn.on('open', () => {
+                saveHistoryToStorage();
                 updateChatListUI();
                 if (!activePeerId) selectChat(remoteId);
             });
 
             conn.on('data', (data) => {
-                // Si es un mensaje de grupo recibido desde un miembro
                 if (data.groupId && activeConnections[data.groupId]) {
                     let group = activeConnections[data.groupId];
                     group.messages.push({ sender: 'other', text: data.text, name: data.name });
@@ -852,7 +922,6 @@
                     return;
                 }
 
-                // Chat individual normal
                 if (activeConnections[remoteId]) {
                     if (data.name && !activeConnections[remoteId].customName) {
                         activeConnections[remoteId].name = data.name;
@@ -999,6 +1068,7 @@
             }
             selectChat(friendId);
             peerIdInput.value = "";
+            savedContactsSelect.value = "";
             connectionMenu.classList.remove('active');
         });
 
@@ -1006,37 +1076,46 @@
                 let groupName = groupNameInput.value.trim();
                 let peersRaw = groupPeersInput.value.trim();
                 if (!groupName || !peersRaw) {
-                    alert("Introduce un nombre de grupo y al menos un ID.");
-                    return;
+                alert("Introduce un nombre de grupo y al menos un ID o contacto.");
+                return;
+            }
+
+            let peersList = peersRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+            // Reemplazar nombres guardados si el usuario introdujo un ID existente o nombre
+            peersList = peersList.map(p => {
+                for (let id in savedContacts) {
+                    if (savedContacts[id].toLowerCase() === p.toLowerCase()) return id;
                 }
-
-                let peersList = peersRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
-                let groupId = 'group_' + Date.now();
-
-                let groupObj = {
-                    isGroup: true,
-                    peers: peersList,
-                    conns: {},
-                    customName: groupName,
-                    name: groupName,
-                    lastMessage: "Grupo creado",
-                    messages: []
-                };
-
-                peersList.forEach(pId => {
-                    let conn = peer.connect(pId);
-                    groupObj.conns[pId] = conn;
-                });
-
-                activeConnections[groupId] = groupObj;
-                saveHistoryToStorage();
-                updateChatListUI();
-                selectChat(groupId);
-
-                groupNameInput.value = "";
-                groupPeersInput.value = "";
-                connectionMenu.classList.remove('active');
+                return p;
             });
+
+            let groupId = 'group_' + Date.now();
+
+            let groupObj = {
+                isGroup: true,
+                peers: peersList,
+                conns: {},
+                customName: groupName,
+                name: groupName,
+                lastMessage: "Grupo creado",
+                messages: []
+            };
+
+            peersList.forEach(pId => {
+                let conn = peer.connect(pId);
+                groupObj.conns[pId] = conn;
+            });
+
+            activeConnections[groupId] = groupObj;
+            saveHistoryToStorage();
+            updateChatListUI();
+            selectChat(groupId);
+
+            groupNameInput.value = "";
+            groupPeersInput.value = "";
+            connectionMenu.classList.remove('active');
+        });
 
             chatForm.addEventListener('submit', (e) => {
                 e.preventDefault();
@@ -1053,7 +1132,6 @@
             updateChatListUI();
 
             if (chat.isGroup) {
-                // Enviar mensaje a todos los miembros del grupo
                 for (let pId in chat.conns) {
                     let conn = chat.conns[pId];
                     if (conn && conn.open) {
@@ -1067,7 +1145,6 @@
                     }
                 }
             } else {
-            // Chat individual
                 if (chat.conn && chat.conn.open) {
                     chat.conn.send({ name: profileName, text: text });
                 } else {
@@ -1098,7 +1175,7 @@
         });
 
             document.querySelectorAll('.theme-btn').forEach(btn => {
-            if (btn.id === 'connectBtn' || btn.id === 'createGroupBtn') return;
+            if (btn.id === 'connectBtn' || btn.id === 'createGroupBtn' || btn.id === 'linkAccountBtn') return;
             btn.addEventListener('click', () => {
                 let t = btn.getAttribute('data-theme');
                 let f = btn.getAttribute('data-font');
@@ -1136,8 +1213,10 @@
             connectionMenu.addEventListener('click', (e) => e.stopPropagation());
 
             myFullIdBox.addEventListener('click', () => {
-                navigator.clipboard.writeText(myFullIdBox.textContent);
-                alert("¡ID copiado al portapapeles!");
+            let currentId = myFullIdBox.textContent;
+            let shareLink = window.location.origin + window.location.pathname + "?link=" + encodeURIComponent(currentId);
+            navigator.clipboard.writeText(shareLink);
+            alert("¡Enlace de vinculación de cuenta copiado al portapapeles!\n\nPégalo en otro dispositivo para restaurar tu cuenta y ID al instante.");
         });
 </script>
 </body>
