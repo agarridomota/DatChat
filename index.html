@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat P2P Multi-Conversación Global</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat P2P Multi-Conversación Global (Responsive)</title>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
@@ -99,19 +99,22 @@
             height: 100vh;
             display: flex;
             background: var(--chat-bg);
+            position: relative;
         }
 
+        /* Barra lateral de herramientas */
         .sidebar {
-            width: 80px;
+            width: 70px;
             background-color: var(--sidebar-bg);
             border-right: 1px solid var(--sidebar-border);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 20px;
-            gap: 20px;
+            padding-top: 15px;
+            gap: 15px;
             position: relative;
-            z-index: 10;
+            z-index: 20;
+            flex-shrink: 0;
         }
 
         .sidebar-avatar-container {
@@ -119,8 +122,8 @@
         }
 
         .sidebar-avatar {
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             background-color: var(--avatar-bg);
             border-radius: 50%;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -134,10 +137,10 @@
             right: -2px;
             background-color: var(--btn-bg);
             color: #ffffff;
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             font-weight: bold;
-            padding: 1px 5px;
-            border-radius: 10px;
+            padding: 1px 4px;
+            border-radius: 8px;
             border: 2px solid var(--sidebar-bg);
         }
 
@@ -156,38 +159,39 @@
         }
 
         .sidebar-settings svg {
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
             fill: var(--icon-color);
         }
 
         .sidebar-add-btn {
             color: var(--icon-color);
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             line-height: 1;
             margin-bottom: 10px;
         }
         .sidebar-add-btn:hover { color: var(--text-color); }
 
         .sidebar-divider {
-            width: 100%;
+            width: 80%;
             height: 2px;
             background-color: var(--divider-color);
             margin-top: auto;
         }
 
+        /* Menús flotantes adaptados */
         .dropdown-menu {
             display: none;
             position: absolute;
-            left: 90px;
+            left: 80px;
             background-color: var(--sidebar-bg);
             border: 1px solid var(--sidebar-border);
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             padding: 12px;
             z-index: 100;
-            width: 280px;
-            max-height: 85vh;
+            width: 260px;
+            max-height: 80vh;
             overflow-y: auto;
             flex-direction: column;
             gap: 10px;
@@ -195,11 +199,11 @@
 
         .dropdown-menu.active { display: flex; }
 
-        #themeMenu { top: 75px; }
-        #connectionMenu { bottom: 20px; }
+        #themeMenu { top: 60px; }
+        #connectionMenu { bottom: 15px; }
 
         .menu-section-title {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: bold;
             text-transform: uppercase;
             color: var(--icon-color);
@@ -211,7 +215,7 @@
         .theme-btn, .profile-input-group input[type="text"] {
             background: none;
             border: 1px solid var(--sidebar-border);
-            padding: 6px 10px;
+            padding: 8px 10px;
             text-align: left;
             border-radius: 4px;
             cursor: pointer;
@@ -230,7 +234,7 @@
         .profile-input-group input[type="file"] { font-size: 0.8rem; color: var(--text-color); }
 
         .connection-status {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             padding: 4px 8px;
             border-radius: 4px;
             text-align: center;
@@ -239,7 +243,7 @@
         .status-ready { background-color: #4ade80; color: #fff; }
 
         .my-id-box {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             background: var(--input-bg);
             border: 1px solid var(--sidebar-border);
             padding: 6px;
@@ -251,12 +255,14 @@
             cursor: pointer;
         }
 
+        /* Panel de Lista de Conversaciones */
         .chat-list-panel {
-            width: 280px;
+            width: 260px;
             background-color: var(--sidebar-bg);
             border-right: 1px solid var(--sidebar-border);
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
         }
 
         .chat-list-header {
@@ -277,7 +283,7 @@
         }
 
         .chat-item {
-            padding: 10px 15px;
+            padding: 12px 15px;
             cursor: pointer;
             border-bottom: 1px solid var(--sidebar-border);
             display: flex;
@@ -318,12 +324,12 @@
             border: none;
             color: var(--icon-color);
             cursor: pointer;
-            font-size: 1rem;
-            padding: 4px;
-            border-radius: 4px;
+            font-size: 1.1rem;
+            padding: 6px;
         }
-        .chat-item-delete:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .chat-item-delete:hover { color: #ef4444; }
 
+        /* Panel de Mensajes */
         .chat-container {
             flex: 1;
             height: 100%;
@@ -334,44 +340,57 @@
         }
 
         .chat-header-bar {
-            padding: 15px 20px;
+            padding: 12px 15px;
             border-bottom: 1px solid var(--sidebar-border);
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.95rem;
             background-color: var(--chat-bg);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
+        }
+
+        .back-to-chats-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            align-items: center;
+            margin-right: 5px;
         }
 
         .rename-btn {
             background: none;
             border: 1px solid var(--sidebar-border);
-            padding: 4px 10px;
-            font-size: 0.8rem;
+            padding: 4px 8px;
+            font-size: 0.75rem;
             border-radius: 4px;
             cursor: pointer;
             color: var(--text-color);
+            white-space: nowrap;
         }
         .rename-btn:hover { background-color: var(--sidebar-border); }
 
         .chat-messages {
             flex: 1;
-            padding: 20px;
+            padding: 15px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             background-color: var(--messages-bg);
             display: none;
         }
         .chat-messages.active { display: flex; }
 
         .message {
-            max-width: 60%;
-            padding: 12px 18px;
+            max-width: 75%;
+            padding: 10px 14px;
             border-radius: 12px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             word-wrap: break-word;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
@@ -393,19 +412,20 @@
 
         .chat-input-area {
             display: flex;
-            padding: 15px 20px;
+            padding: 10px 15px;
             background-color: var(--input-area-bg);
             border-top: 1px solid var(--sidebar-border);
             align-items: center;
+            gap: 8px;
         }
 
         .chat-input-area input {
             flex: 1;
-            padding: 14px 20px;
+            padding: 12px 16px;
             border: 1px solid var(--input-border);
-            border-radius: 30px;
+            border-radius: 25px;
             outline: none;
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: var(--text-color);
             background-color: var(--input-bg);
         }
@@ -414,18 +434,17 @@
             background-color: var(--btn-bg);
             color: #fff;
             border: none;
-            width: 50px;
-            height: 50px;
-            margin-left: 12px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-shrink: 0;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .chat-input-area button:hover { background-color: var(--btn-hover); }
-        .chat-input-area button svg { width: 20px; height: 20px; fill: currentColor; }
+        .chat-input-area button svg { width: 18px; height: 18px; fill: currentColor; }
 
         .no-chat-selected {
             flex: 1;
@@ -433,15 +452,79 @@
             justify-content: center;
             align-items: center;
             color: var(--icon-color);
-            font-size: 1.1rem;
+            font-size: 1rem;
             text-align: center;
             padding: 20px;
+        }
+
+        /* DISEÑO RESPONSIVO PARA MÓVILES Y TABLETAS (< 768px) */
+        @media screen and (max-width: 767px) {
+            .app-container {
+                flex-direction: column-reverse;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: 60px;
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 10px;
+                border-right: none;
+                border-top: 1px solid var(--sidebar-border);
+            }
+
+            .sidebar-divider { display: none; }
+            .sidebar-add-btn { margin-bottom: 0; }
+
+            .dropdown-menu {
+                left: 10px;
+                right: 10px;
+                bottom: 70px;
+                width: auto;
+            }
+            #themeMenu { top: auto; bottom: 70px; }
+
+            /* Ocultar lista de chats o contenedor de chat según estado en móvil */
+            .chat-list-panel {
+                width: 100%;
+                height: calc(100vh - 60px);
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 5;
+                display: flex;
+            }
+
+            .chat-container {
+                width: 100%;
+                height: calc(100vh - 60px);
+                position: absolute;
+                top: 0;
+                left: 100%;
+                z-index: 6;
+                transition: left 0.3s ease;
+            }
+
+            .app-container.chat-active .chat-container {
+                left: 0;
+            }
+
+            .app-container.chat-active .chat-list-panel {
+                display: none;
+            }
+
+            .back-to-chats-btn {
+                display: inline-flex;
+            }
+            
+            .message { max-width: 85%; }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container" id="appContainer">
         <!-- Barra lateral -->
         <div class="sidebar">
             <div class="sidebar-avatar-container" title="Tu Perfil">
@@ -517,8 +600,12 @@
 
         <!-- Panel de Mensajes -->
         <div class="chat-container">
-            <div class="chat-header-bar" id="activeChatHeader">
-                <span id="activeChatTitleText">Selecciona un chat a la izquierda</span>
+            <div class="chat-header-bar">
+                <div style="display:flex; align-items:center; overflow:hidden;">
+                    <button class="back-to-chats-btn" id="backToChatsBtn">&#8592;</button>
+                    <span id="activeChatTitleText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Selecciona
+                        un chat</span>
+                </div>
                 <button class="rename-btn" id="renameChatBtn" style="display:none;" data-i18n="renameBtn">Cambiar Nombre</button>
             </div>
             
@@ -559,6 +646,8 @@
             const chatCount = document.getElementById('chatCount');
             const activeChatTitleText = document.getElementById('activeChatTitleText');
             const renameChatBtn = document.getElementById('renameChatBtn');
+            const backToChatsBtn = document.getElementById('backToChatsBtn');
+            const appContainer = document.getElementById('appContainer');
             const noChatSelected = document.getElementById('noChatSelected');
             const messagesContainerWrapper = document.getElementById('messagesContainerWrapper');
             const chatForm = document.getElementById('chatForm');
@@ -567,12 +656,12 @@
             const profileImageInput = document.getElementById('profileImageInput');
 
             const translations = {
-            es: { profileTitle: "Perfil", nameLabel: "Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversaciones", renameBtn: "Cambiar Nombre", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para unirte a múltiples chats en paralelo.", inputPlaceholder: "Escribe un mensaje...", selectPrompt: "Selecciona un chat a la izquierda" },
-            en: { profileTitle: "Profile", nameLabel: "Name:", imageLabel: "Profile Picture:", screenModeTitle: "Screen Mode", modeNormal: "Normal Mode", modeDark: "Dark Mode", modeContrast: "High Contrast", fontTitle: "Font Family", langTitle: "Language", conversationsTitle: "Conversations", renameBtn: "Rename", welcomeText: "No chat selected.<br>Click the **`+`** button to join multiple parallel chats.", inputPlaceholder: "Type a message...", selectPrompt: "Select a chat on the left" },
-            pt: { profileTitle: "Perfil", nameLabel: "Nome:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Tela", modeNormal: "Modo Normal", modeDark: "Modo Escuro", modeContrast: "Alto Contraste", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversações", renameBtn: "Renomear", welcomeText: "Nenhum chat selecionado.<br>Clique no botão **`+`** para iniciar vários chats.", inputPlaceholder: "Digite uma mensagem...", selectPrompt: "Selecione um chat à esquerda" },
-            fr: { profileTitle: "Profil", nameLabel: "Nom :", imageLabel: "Photo de profil :", screenModeTitle: "Mode d'affichage", modeNormal: "Mode Normal", modeDark: "Mode Sombre", modeContrast: "Contraste Élevé", fontTitle: "Police", langTitle: "Langue", conversationsTitle: "Conversations", renameBtn: "Renommer", welcomeText: "Aucun chat sélectionné.<br>Cliquez sur **`+`** pour discuter.", inputPlaceholder: "Tapez un message...", selectPrompt: "Sélectionnez un chat à gauche" },
-            it: { profileTitle: "Profilo", nameLabel: "Nome:", imageLabel: "Foto profilo:", screenModeTitle: "Modalità Schermo", modeNormal: "Modale Normale", modeDark: "Modalità Scura", modeContrast: "Alto Contrasto", fontTitle: "Carattere", langTitle: "Lingua", conversationsTitle: "Conversazioni", renameBtn: "Rinomina", welcomeText: "Nessuna chat selezionata.<br>Clicca **`+`** per chattare.", inputPlaceholder: "Scrivi un messaggio...", selectPrompt: "Seleziona una chat a sinistra" },
-            de: { profileTitle: "Profil", nameLabel: "Name:", imageLabel: "Profilbild:", screenModeTitle: "Bildschirmmodus", modeNormal: "Normaler Modus", modeDark: "Dunkler Modus", modeContrast: "Hoher Kontrast", fontTitle: "Schriftart", langTitle: "Sprache", conversationsTitle: "Konversationen", renameBtn: "Umbenennen", welcomeText: "Kein Chat ausgewählt.<br>Klicken Sie auf **`+`**.", inputPlaceholder: "Nachricht schreiben...", selectPrompt: "Wählen Sie links einen Chat aus" }
+            es: { profileTitle: "Perfil", nameLabel: "Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversaciones", renameBtn: "Cambiar Nombre", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para unirte a múltiples chats en paralelo.", inputPlaceholder: "Escribe un mensaje...", selectPrompt: "Selecciona un chat" },
+            en: { profileTitle: "Profile", nameLabel: "Name:", imageLabel: "Profile Picture:", screenModeTitle: "Screen Mode", modeNormal: "Normal Mode", modeDark: "Dark Mode", modeContrast: "High Contrast", fontTitle: "Font Family", langTitle: "Language", conversationsTitle: "Conversations", renameBtn: "Rename", welcomeText: "No chat selected.<br>Click the **`+`** button to join multiple parallel chats.", inputPlaceholder: "Type a message...", selectPrompt: "Select a chat" },
+            pt: { profileTitle: "Perfil", nameLabel: "Nome:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Tela", modeNormal: "Modo Normal", modeDark: "Modo Escuro", modeContrast: "Alto Contraste", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversações", renameBtn: "Renomear", welcomeText: "Nenhum chat selecionado.<br>Clique no botão **`+`** para iniciar vários chats.", inputPlaceholder: "Digite uma mensagem...", selectPrompt: "Selecione um chat" },
+            fr: { profileTitle: "Profil", nameLabel: "Nom :", imageLabel: "Photo de profil :", screenModeTitle: "Mode d'affichage", modeNormal: "Mode Normal", modeDark: "Mode Sombre", modeContrast: "Contraste Élevé", fontTitle: "Police", langTitle: "Langue", conversationsTitle: "Conversations", renameBtn: "Renommer", welcomeText: "Aucun chat sélectionné.<br>Cliquez sur **`+`** pour discuter.", inputPlaceholder: "Tapez un message...", selectPrompt: "Sélectionnez un chat" },
+            it: { profileTitle: "Profilo", nameLabel: "Nome:", imageLabel: "Foto profilo:", screenModeTitle: "Modalità Schermo", modeNormal: "Modale Normale", modeDark: "Modalità Scura", modeContrast: "Alto Contrasto", fontTitle: "Carattere", langTitle: "Lingua", conversationsTitle: "Conversazioni", renameBtn: "Rinomina", welcomeText: "Nessuna chat selezionata.<br>Clicca **`+`** per chattare.", inputPlaceholder: "Scrivi un messaggio...", selectPrompt: "Seleziona una chat" },
+            de: { profileTitle: "Profil", nameLabel: "Name:", imageLabel: "Profilbild:", screenModeTitle: "Bildschirmmodus", modeNormal: "Normaler Modus", modeDark: "Dunkler Modus", modeContrast: "Hoher Kontrast", fontTitle: "Schriftart", langTitle: "Sprache", conversationsTitle: "Konversationen", renameBtn: "Umbenennen", welcomeText: "Kein Chat ausgewählt.<br>Klicken Sie auf **`+`**.", inputPlaceholder: "Nachricht schreiben...", selectPrompt: "Wählen Sie einen Chat aus" }
         };
 
             function setLanguage(lang) {
@@ -614,7 +703,6 @@
             let savedLang = localStorage.getItem('multi_chat_lang');
             let savedChats = localStorage.getItem('multi_chat_history');
 
-            // Asegurar ID persistente fija
             let persistentId = localStorage.getItem('multi_chat_permanent_id');
             if (!persistentId) {
                 persistentId = 'peer_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
@@ -761,29 +849,35 @@
                 delete activeConnections[id];
                 saveHistoryToStorage();
 
-                if (activePeerId === id) {
-                    activePeerId = null;
-                    noChatSelected.style.display = 'flex';
-                    chatForm.style.display = 'none';
-                    renameChatBtn.style.display = 'none';
-                    activeChatTitleText.textContent = translations[currentLang].selectPrompt;
-                    messagesContainerWrapper.innerHTML = '';
-                }
-                updateChatListUI();
+            if (activePeerId === id) {
+                activePeerId = null;
+                appContainer.classList.remove('chat-active');
+                noChatSelected.style.display = 'flex';
+                chatForm.style.display = 'none';
+                renameChatBtn.style.display = 'none';
+                activeChatTitleText.textContent = translations[currentLang].selectPrompt;
+                messagesContainerWrapper.innerHTML = '';
             }
+            updateChatListUI();
+        }
 
             function selectChat(id) {
                 activePeerId = id;
                 noChatSelected.style.display = 'none';
                 chatForm.style.display = 'flex';
             renameChatBtn.style.display = 'inline-block';
+            appContainer.classList.add('chat-active');
 
             let chat = activeConnections[id];
-            activeChatTitleText.textContent = `Chat: ${chat.customName || chat.name}`;
+            activeChatTitleText.textContent = chat.customName || chat.name;
             
             updateChatListUI();
             renderMessagesForActiveChat();
         }
+
+            backToChatsBtn.addEventListener('click', () => {
+                appContainer.classList.remove('chat-active');
+            });
 
             renameChatBtn.addEventListener('click', () => {
                 if (!activePeerId) return;
@@ -792,11 +886,11 @@
                 let newName = prompt("Escribe el nuevo nombre para este chat:", currentDisplayName);
                 if (newName !== null) {
                     chat.customName = newName.trim() || null;
-                    activeChatTitleText.textContent = `Chat: ${chat.customName || chat.name}`;
-                    saveHistoryToStorage();
-                    updateChatListUI();
-                }
-            });
+                activeChatTitleText.textContent = chat.customName || chat.name;
+                saveHistoryToStorage();
+                updateChatListUI();
+            }
+        });
 
             function renderMessagesForActiveChat() {
                 messagesContainerWrapper.innerHTML = "";
