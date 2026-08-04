@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat P2P Multi-Conversación Global</title>
-    <!-- Importar fuente Comfortaa -->
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
@@ -253,7 +252,7 @@
         }
 
         .chat-list-panel {
-            width: 260px;
+            width: 280px;
             background-color: var(--sidebar-bg);
             border-right: 1px solid var(--sidebar-border);
             display: flex;
@@ -278,20 +277,29 @@
         }
 
         .chat-item {
-            padding: 12px 15px;
+            padding: 10px 15px;
             cursor: pointer;
             border-bottom: 1px solid var(--sidebar-border);
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            justify-content: space-between;
+            align-items: center;
             transition: background 0.2s;
         }
         .chat-item:hover { background-color: var(--sidebar-border); }
         .chat-item.active { background-color: var(--active-chat-bg); border-left: 4px solid var(--btn-bg); }
 
+        .chat-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            overflow: hidden;
+            margin-right: 8px;
+        }
+
         .chat-item-title {
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -304,6 +312,17 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        .chat-item-delete {
+            background: none;
+            border: none;
+            color: var(--icon-color);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .chat-item-delete:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
 
         .chat-container {
             flex: 1;
@@ -320,7 +339,21 @@
             font-weight: bold;
             font-size: 1rem;
             background-color: var(--chat-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+
+        .rename-btn {
+            background: none;
+            border: 1px solid var(--sidebar-border);
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        .rename-btn:hover { background-color: var(--sidebar-border); }
 
         .chat-messages {
             flex: 1;
@@ -423,7 +456,7 @@
                 </svg>
             </button>
 
-            <!-- Menú Configuración con Idiomas, Letras, Foto y Modos -->
+            <!-- Menú Configuración -->
             <div class="dropdown-menu" id="themeMenu">
                 <div class="menu-section-title" data-i18n="profileTitle">Perfil</div>
                 <div class="profile-input-group">
@@ -457,7 +490,7 @@
 
             <!-- Menú Conexión -->
             <div class="dropdown-menu" id="connectionMenu">
-                <div class="menu-section-title">Tu ID Global</div>
+                <div class="menu-section-title">Tu ID Global Permanente</div>
                 <div class="my-id-box" id="myFullIdBox" title="Copiar ID">Cargando...</div>
                 <div class="connection-status status-ready">Listo para recibir chats</div>
                 <div class="profile-input-group">
@@ -472,10 +505,10 @@
             <button class="sidebar-add-btn" id="addChatBtn" title="Añadir nueva conversación">+</button>
         </div>
 
-        <!-- Panel de Lista de Conversaciones Activas -->
+        <!-- Panel de Lista de Conversaciones -->
         <div class="chat-list-panel">
             <div class="chat-list-header">
-                <span>Conversaciones</span>
+                <span data-i18n="conversationsTitle">Conversaciones</span>
                 <span id="chatCount"
                     style="font-size:0.75rem; background:var(--btn-bg); color:#fff; padding:2px 6px; border-radius:10px;">0</span>
             </div>
@@ -484,7 +517,10 @@
 
         <!-- Panel de Mensajes -->
         <div class="chat-container">
-            <div class="chat-header-bar" id="activeChatHeader">Selecciona un chat a la izquierda</div>
+            <div class="chat-header-bar" id="activeChatHeader">
+                <span id="activeChatTitleText">Selecciona un chat a la izquierda</span>
+                <button class="rename-btn" id="renameChatBtn" style="display:none;" data-i18n="renameBtn">Cambiar Nombre</button>
+            </div>
             
             <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;" id="chatAreaWrapper">
                 <div class="no-chat-selected" id="noChatSelected" data-i18n="welcomeText">
@@ -521,7 +557,8 @@
         const connectBtn = document.getElementById('connectBtn');
             const chatItemsList = document.getElementById('chatItemsList');
             const chatCount = document.getElementById('chatCount');
-            const activeChatHeader = document.getElementById('activeChatHeader');
+            const activeChatTitleText = document.getElementById('activeChatTitleText');
+            const renameChatBtn = document.getElementById('renameChatBtn');
             const noChatSelected = document.getElementById('noChatSelected');
             const messagesContainerWrapper = document.getElementById('messagesContainerWrapper');
             const chatForm = document.getElementById('chatForm');
@@ -529,15 +566,14 @@
             const profileNameInput = document.getElementById('profileNameInput');
             const profileImageInput = document.getElementById('profileImageInput');
 
-            // Traducciones completas
             const translations = {
-                es: { profileTitle: "Perfil", nameLabel: "Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para unirte a múltiples chats en paralelo.", inputPlaceholder: "Escribe un mensaje..." },
-                en: { profileTitle: "Profile", nameLabel: "Name:", imageLabel: "Profile Picture:", screenModeTitle: "Screen Mode", modeNormal: "Normal Mode", modeDark: "Dark Mode", modeContrast: "High Contrast", fontTitle: "Font Family", langTitle: "Language", welcomeText: "No chat selected.<br>Click the **`+`** button to join multiple parallel chats.", inputPlaceholder: "Type a message..." },
-                pt: { profileTitle: "Perfil", nameLabel: "Nome:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Tela", modeNormal: "Modo Normal", modeDark: "Modo Escuro", modeContrast: "Alto Contraste", fontTitle: "Tipo de Letra", langTitle: "Idioma", welcomeText: "Nenhum chat selecionado.<br>Clique no botão **`+`** para iniciar vários chats.", inputPlaceholder: "Digite uma mensagem..." },
-                fr: { profileTitle: "Profil", nameLabel: "Nom :", imageLabel: "Photo de profil :", screenModeTitle: "Mode d'affichage", modeNormal: "Mode Normal", modeDark: "Mode Sombre", modeContrast: "Contraste Élevé", fontTitle: "Police", langTitle: "Langue", welcomeText: "Aucun chat sélectionné.<br>Cliquez sur **`+`** pour discuter.", inputPlaceholder: "Tapez un message..." },
-                it: { profileTitle: "Profilo", nameLabel: "Nome:", imageLabel: "Foto profilo:", screenModeTitle: "Modalità Schermo", modeNormal: "Modale Normale", modeDark: "Modalità Scura", modeContrast: "Alto Contrasto", fontTitle: "Carattere", langTitle: "Lingua", welcomeText: "Nessuna chat selezionata.<br>Clicca **`+`** per chattare.", inputPlaceholder: "Scrivi un messaggio..." },
-                de: { profileTitle: "Profil", nameLabel: "Name:", imageLabel: "Profilbild:", screenModeTitle: "Bildschirmmodus", modeNormal: "Normaler Modus", modeDark: "Dunkler Modus", modeContrast: "Hoher Kontrast", fontTitle: "Schriftart", langTitle: "Sprache", welcomeText: "Kein Chat ausgewählt.<br>Klicken Sie auf **`+`**.", inputPlaceholder: "Nachricht schreiben..." }
-            };
+            es: { profileTitle: "Perfil", nameLabel: "Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversaciones", renameBtn: "Cambiar Nombre", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para unirte a múltiples chats en paralelo.", inputPlaceholder: "Escribe un mensaje...", selectPrompt: "Selecciona un chat a la izquierda" },
+            en: { profileTitle: "Profile", nameLabel: "Name:", imageLabel: "Profile Picture:", screenModeTitle: "Screen Mode", modeNormal: "Normal Mode", modeDark: "Dark Mode", modeContrast: "High Contrast", fontTitle: "Font Family", langTitle: "Language", conversationsTitle: "Conversations", renameBtn: "Rename", welcomeText: "No chat selected.<br>Click the **`+`** button to join multiple parallel chats.", inputPlaceholder: "Type a message...", selectPrompt: "Select a chat on the left" },
+            pt: { profileTitle: "Perfil", nameLabel: "Nome:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Tela", modeNormal: "Modo Normal", modeDark: "Modo Escuro", modeContrast: "Alto Contraste", fontTitle: "Tipo de Letra", langTitle: "Idioma", conversationsTitle: "Conversações", renameBtn: "Renomear", welcomeText: "Nenhum chat selecionado.<br>Clique no botão **`+`** para iniciar vários chats.", inputPlaceholder: "Digite uma mensagem...", selectPrompt: "Selecione um chat à esquerda" },
+            fr: { profileTitle: "Profil", nameLabel: "Nom :", imageLabel: "Photo de profil :", screenModeTitle: "Mode d'affichage", modeNormal: "Mode Normal", modeDark: "Mode Sombre", modeContrast: "Contraste Élevé", fontTitle: "Police", langTitle: "Langue", conversationsTitle: "Conversations", renameBtn: "Renommer", welcomeText: "Aucun chat sélectionné.<br>Cliquez sur **`+`** pour discuter.", inputPlaceholder: "Tapez un message...", selectPrompt: "Sélectionnez un chat à gauche" },
+            it: { profileTitle: "Profilo", nameLabel: "Nome:", imageLabel: "Foto profilo:", screenModeTitle: "Modalità Schermo", modeNormal: "Modale Normale", modeDark: "Modalità Scura", modeContrast: "Alto Contrasto", fontTitle: "Carattere", langTitle: "Lingua", conversationsTitle: "Conversazioni", renameBtn: "Rinomina", welcomeText: "Nessuna chat selezionata.<br>Clicca **`+`** per chattare.", inputPlaceholder: "Scrivi un messaggio...", selectPrompt: "Seleziona una chat a sinistra" },
+            de: { profileTitle: "Profil", nameLabel: "Name:", imageLabel: "Profilbild:", screenModeTitle: "Bildschirmmodus", modeNormal: "Normaler Modus", modeDark: "Dunkler Modus", modeContrast: "Hoher Kontrast", fontTitle: "Schriftart", langTitle: "Sprache", conversationsTitle: "Konversationen", renameBtn: "Umbenennen", welcomeText: "Kein Chat ausgewählt.<br>Klicken Sie auf **`+`**.", inputPlaceholder: "Nachricht schreiben...", selectPrompt: "Wählen Sie links einen Chat aus" }
+        };
 
             function setLanguage(lang) {
                 currentLang = lang;
@@ -549,7 +585,10 @@
                     }
                 });
                 messageInput.placeholder = translations[lang].inputPlaceholder;
+            if (!activePeerId) {
+                activeChatTitleText.textContent = translations[lang].selectPrompt;
             }
+        }
 
             function applyFont(font) {
                 if (font === 'sans') {
@@ -567,15 +606,20 @@
                 }
             }
 
-            // Cargar ajustes guardados en localStorage al iniciar
             window.addEventListener('DOMContentLoaded', () => {
-            let savedId = localStorage.getItem('multi_chat_peer_id');
             let savedName = localStorage.getItem('multi_chat_name');
             let savedImage = localStorage.getItem('multi_chat_image');
             let savedTheme = localStorage.getItem('multi_chat_theme');
             let savedFont = localStorage.getItem('multi_chat_font');
             let savedLang = localStorage.getItem('multi_chat_lang');
             let savedChats = localStorage.getItem('multi_chat_history');
+
+            // Asegurar ID persistente fija
+            let persistentId = localStorage.getItem('multi_chat_permanent_id');
+            if (!persistentId) {
+                persistentId = 'peer_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+                localStorage.setItem('multi_chat_permanent_id', persistentId);
+            }
 
             if (savedName) {
                 profileName = savedName;
@@ -586,6 +630,8 @@
             }
             if (savedLang) {
                 setLanguage(savedLang);
+            } else {
+                setLanguage('es');
             }
             if (savedTheme) {
                 document.body.classList.remove('dark-mode', 'high-contrast');
@@ -598,10 +644,10 @@
             if (savedChats) {
                 try {
                     let parsed = JSON.parse(savedChats);
-                    // Restauramos estructura básica de historial de mensajes por chat guardados
                     for (let id in parsed) {
                         activeConnections[id] = {
-                            conn: null, // Se reconectará si vuelve a entrar o se puede reconectar mediante peer.connect si es necesario
+                            conn: null,
+                            customName: parsed[id].customName || null,
                             name: parsed[id].name,
                             lastMessage: parsed[id].lastMessage,
                             messages: parsed[id].messages
@@ -611,27 +657,27 @@
                 } catch (e) { }
             }
 
-            initPeer(savedId);
+            initPeer(persistentId);
         });
 
             function saveHistoryToStorage() {
                 let serializable = {};
                 for (let id in activeConnections) {
                     serializable[id] = {
-                        name: activeConnections[id].name,
-                        lastMessage: activeConnections[id].lastMessage,
-                        messages: activeConnections[id].messages
-                    };
-                }
-                localStorage.setItem('multi_chat_history', JSON.stringify(serializable));
+                    customName: activeConnections[id].customName,
+                    name: activeConnections[id].name,
+                    lastMessage: activeConnections[id].lastMessage,
+                    messages: activeConnections[id].messages
+                };
             }
+            localStorage.setItem('multi_chat_history', JSON.stringify(serializable));
+        }
 
-            function initPeer(savedId) {
-            peer = savedId ? new Peer(savedId, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } }) : new Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
+            function initPeer(permanentId) {
+                peer = new Peer(permanentId, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
 
             peer.on('open', (id) => {
-                localStorage.setItem('multi_chat_peer_id', id);
-                avatarNumber.textContent = "#" + id.substring(0, 4);
+                avatarNumber.textContent = "#" + id.substring(id.length - 4);
                 myFullIdBox.textContent = id;
             });
 
@@ -648,6 +694,7 @@
             } else {
                 activeConnections[remoteId] = {
                     conn: conn,
+                    customName: null,
                     name: "Amigo (" + remoteId.substring(0, 4) + ")",
                     lastMessage: "Conectado",
                     messages: []
@@ -660,7 +707,9 @@
             });
 
             conn.on('data', (data) => {
-                if (data.name) activeConnections[remoteId].name = data.name;
+                if (data.name && !activeConnections[remoteId].customName) {
+                    activeConnections[remoteId].name = data.name;
+                }
                 activeConnections[remoteId].messages.push({ sender: 'other', text: data.text, name: data.name });
                 activeConnections[remoteId].lastMessage = data.text;
 
@@ -684,26 +733,70 @@
 
             keys.forEach(id => {
                 let chat = activeConnections[id];
+                let displayName = chat.customName || chat.name;
                 let item = document.createElement('div');
                 item.className = `chat-item ${activePeerId === id ? 'active' : ''}`;
                 item.innerHTML = `
-                    <div class="chat-item-title">${chat.name}</div>
-                    <div class="chat-item-subtitle">${chat.lastMessage}</div>
+                    <div class="chat-item-info">
+                        <div class="chat-item-title">${displayName}</div>
+                        <div class="chat-item-subtitle">${chat.lastMessage}</div>
+                    </div>
+                    <button class="chat-item-delete" title="Eliminar chat">&times;</button>
                 `;
-                item.onclick = () => selectChat(id);
+
+                item.querySelector('.chat-item-info').onclick = () => selectChat(id);
+                item.querySelector('.chat-item-delete').onclick = (e) => {
+                    e.stopPropagation();
+                    deleteChat(id);
+                };
+
                 chatItemsList.appendChild(item);
             });
         }
+
+            function deleteChat(id) {
+                if (activeConnections[id] && activeConnections[id].conn) {
+                    activeConnections[id].conn.close();
+                }
+                delete activeConnections[id];
+                saveHistoryToStorage();
+
+                if (activePeerId === id) {
+                    activePeerId = null;
+                    noChatSelected.style.display = 'flex';
+                    chatForm.style.display = 'none';
+                    renameChatBtn.style.display = 'none';
+                    activeChatTitleText.textContent = translations[currentLang].selectPrompt;
+                    messagesContainerWrapper.innerHTML = '';
+                }
+                updateChatListUI();
+            }
 
             function selectChat(id) {
                 activePeerId = id;
                 noChatSelected.style.display = 'none';
                 chatForm.style.display = 'flex';
-                activeChatHeader.textContent = `Chat con: ${activeConnections[id].name}`;
-        
+            renameChatBtn.style.display = 'inline-block';
+
+            let chat = activeConnections[id];
+            activeChatTitleText.textContent = `Chat: ${chat.customName || chat.name}`;
+            
             updateChatListUI();
             renderMessagesForActiveChat();
         }
+
+            renameChatBtn.addEventListener('click', () => {
+                if (!activePeerId) return;
+                let chat = activeConnections[activePeerId];
+                let currentDisplayName = chat.customName || chat.name;
+                let newName = prompt("Escribe el nuevo nombre para este chat:", currentDisplayName);
+                if (newName !== null) {
+                    chat.customName = newName.trim() || null;
+                    activeChatTitleText.textContent = `Chat: ${chat.customName || chat.name}`;
+                    saveHistoryToStorage();
+                    updateChatListUI();
+                }
+            });
 
             function renderMessagesForActiveChat() {
                 messagesContainerWrapper.innerHTML = "";
@@ -768,7 +861,6 @@
                     text: text
                 });
             } else {
-                // Si se recargó la página y se quiere reestablecer la conexión activa
                 chat.conn = peer.connect(activePeerId);
                 chat.conn.on('open', () => {
                     chat.conn.send({ name: profileName, text: text });
@@ -776,7 +868,6 @@
             }
         });
 
-            // Eventos de guardado para nombre, avatar, temas y letras
             profileNameInput.addEventListener('input', (e) => {
                 profileName = e.target.value.trim() || "Anónimo";
                 localStorage.setItem('multi_chat_name', profileName);
