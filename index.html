@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Multi-Conversación P2P</title>
+    <title>Chat P2P Multi-Conversación Global</title>
+    <!-- Importar fuente Comfortaa -->
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
@@ -101,7 +102,6 @@
             background: var(--chat-bg);
         }
 
-        /* Barra lateral de navegación / herramientas */
         .sidebar {
             width: 80px;
             background-color: var(--sidebar-bg);
@@ -168,9 +168,7 @@
             line-height: 1;
             margin-bottom: 10px;
         }
-        .sidebar-add-btn:hover {
-            color: var(--text-color);
-        }
+        .sidebar-add-btn:hover { color: var(--text-color); }
 
         .sidebar-divider {
             width: 100%;
@@ -179,7 +177,6 @@
             margin-top: auto;
         }
 
-        /* Menús flotantes (Configuración y Conexión) */
         .dropdown-menu {
             display: none;
             position: absolute;
@@ -190,16 +187,14 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             padding: 12px;
             z-index: 100;
-            width: 260px;
+            width: 280px;
             max-height: 85vh;
             overflow-y: auto;
             flex-direction: column;
             gap: 10px;
         }
 
-        .dropdown-menu.active {
-            display: flex;
-        }
+        .dropdown-menu.active { display: flex; }
 
         #themeMenu { top: 75px; }
         #connectionMenu { bottom: 20px; }
@@ -211,6 +206,7 @@
             color: var(--icon-color);
             border-bottom: 1px solid var(--sidebar-border);
             padding-bottom: 2px;
+            margin-top: 5px;
         }
 
         .theme-btn, .profile-input-group input[type="text"] {
@@ -232,6 +228,7 @@
             gap: 5px;
         }
         .profile-input-group label { font-size: 0.8rem; }
+        .profile-input-group input[type="file"] { font-size: 0.8rem; color: var(--text-color); }
 
         .connection-status {
             font-size: 0.8rem;
@@ -255,7 +252,6 @@
             cursor: pointer;
         }
 
-        /* Panel secundario: Lista de Conversaciones Activas (Multi-chat) */
         .chat-list-panel {
             width: 260px;
             background-color: var(--sidebar-bg);
@@ -290,15 +286,8 @@
             gap: 4px;
             transition: background 0.2s;
         }
-
-        .chat-item:hover {
-            background-color: var(--sidebar-border);
-        }
-
-        .chat-item.active {
-            background-color: var(--active-chat-bg);
-            border-left: 4px solid var(--btn-bg);
-        }
+        .chat-item:hover { background-color: var(--sidebar-border); }
+        .chat-item.active { background-color: var(--active-chat-bg); border-left: 4px solid var(--btn-bg); }
 
         .chat-item-title {
             font-weight: bold;
@@ -316,7 +305,6 @@
             text-overflow: ellipsis;
         }
 
-        /* Panel principal del chat seleccionado */
         .chat-container {
             flex: 1;
             height: 100%;
@@ -342,12 +330,9 @@
             flex-direction: column;
             gap: 15px;
             background-color: var(--messages-bg);
-            display: none; /* Se muestran solo si están activas */
+            display: none;
         }
-
-        .chat-messages.active {
-            display: flex;
-        }
+        .chat-messages.active { display: flex; }
 
         .message {
             max-width: 60%;
@@ -424,7 +409,7 @@
 <body>
 
     <div class="app-container">
-        <!-- Barra lateral de controles -->
+        <!-- Barra lateral -->
         <div class="sidebar">
             <div class="sidebar-avatar-container" title="Tu Perfil">
                 <div class="sidebar-avatar" id="avatarBtn"></div>
@@ -438,21 +423,35 @@
                 </svg>
             </button>
 
-            <!-- Menú Configuración -->
+            <!-- Menú Configuración con Idiomas, Letras, Foto y Modos -->
             <div class="dropdown-menu" id="themeMenu">
-                <div class="menu-section-title">Perfil</div>
+                <div class="menu-section-title" data-i18n="profileTitle">Perfil</div>
                 <div class="profile-input-group">
-                    <label>Tu Nombre:</label>
-                    <input type="text" id="profileNameInput" placeholder="Nombre...">
+                    <label data-i18n="nameLabel">Nombre:</label>
+                    <input type="text" id="profileNameInput" placeholder="Tu nombre...">
                 </div>
                 <div class="profile-input-group">
-                    <label>Avatar:</label>
+                    <label data-i18n="imageLabel">Foto de perfil:</label>
                     <input type="file" id="profileImageInput" accept="image/*">
                 </div>
-                <div class="menu-section-title">Apariencia</div>
-                <button class="theme-btn" data-theme="normal">Modo Normal</button>
-                <button class="theme-btn" data-theme="dark">Modo Oscuro</button>
-                <button class="theme-btn" data-theme="contrast">Contraste Alto</button>
+<div class="menu-section-title" data-i18n="screenModeTitle">Modo de Pantalla</div>
+<button class="theme-btn" data-theme="normal" data-i18n="modeNormal">Modo Normal</button>
+<button class="theme-btn" data-theme="dark" data-i18n="modeDark">Modo Oscuro</button>
+<button class="theme-btn" data-theme="contrast" data-i18n="modeContrast">Contraste Alto</button>
+
+<div class="menu-section-title" data-i18n="fontTitle">Tipo de Letra</div>
+<button class="theme-btn" data-font="sans">Sans-Serif</button>
+<button class="theme-btn" data-font="serif">Serif (Clásica)</button>
+<button class="theme-btn" data-font="mono">Monospace</button>
+<button class="theme-btn" data-font="comfortaa">Comfortaa (Negrita)</button>
+
+<div class="menu-section-title" data-i18n="langTitle">Idioma</div>
+<button class="theme-btn" data-lang="es">Español</button>
+<button class="theme-btn" data-lang="en">English</button>
+<button class="theme-btn" data-lang="pt">Português</button>
+<button class="theme-btn" data-lang="fr">Français</button>
+<button class="theme-btn" data-lang="it">Italiano</button>
+<button class="theme-btn" data-lang="de">Deutsch</button>
             </div>
 
             <!-- Menú Conexión -->
@@ -461,7 +460,7 @@
                 <div class="my-id-box" id="myFullIdBox" title="Copiar ID">Cargando...</div>
                 <div class="connection-status status-ready">Listo para recibir chats</div>
                 <div class="profile-input-group">
-                    <label>ID de la nueva conexión:</label>
+                    <label>ID del amigo:</label>
                     <input type="text" id="peerIdInput" placeholder="Pega el ID aquí...">
                 </div>
                 <button class="theme-btn" id="connectBtn" style="text-align:center; background:var(--btn-bg); color:#fff;">Conectar
@@ -470,29 +469,27 @@
 
             <div class="sidebar-divider"></div>
             <button class="sidebar-add-btn" id="addChatBtn" title="Añadir nueva conversación">+</button>
-            </div>
+        </div>
 
-        <!-- Panel de Lista de Conversaciones Activas (Multi-Chat) -->
+        <!-- Panel de Lista de Conversaciones Activas -->
         <div class="chat-list-panel">
             <div class="chat-list-header">
                 <span>Conversaciones</span>
                 <span id="chatCount"
                     style="font-size:0.75rem; background:var(--btn-bg); color:#fff; padding:2px 6px; border-radius:10px;">0</span>
             </div>
-            <div class="chat-items" id="chatItemsList">
-                <!-- Se generan dinámicamente -->
-            </div>
+            <div class="chat-items" id="chatItemsList"></div>
         </div>
 
-        <!-- Panel de Mensajes del Chat Activo -->
+        <!-- Panel de Mensajes -->
         <div class="chat-container">
             <div class="chat-header-bar" id="activeChatHeader">Selecciona un chat a la izquierda</div>
             
             <div style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;" id="chatAreaWrapper">
-                <div class="no-chat-selected" id="noChatSelected">
+                <div class="no-chat-selected" id="noChatSelected" data-i18n="welcomeText">
                     No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para unirte a múltiples chats en paralelo.
                 </div>
-                <!-- Contenedores de mensajes por cada peer se inyectan aquí -->
+                
                 <div id="messagesContainerWrapper" style="flex:1; display:flex; flex-direction:column; overflow:hidden;"></div>
 
                 <form class="chat-input-area" id="chatForm" style="display:none;">
@@ -508,7 +505,7 @@
     <script>
             let peer = null;
             let profileName = "Anónimo";
-            // Diccionario centralizado para almacenar múltiples conexiones simultáneas: { peerId: { conn, name, messages: [] } }
+            let currentLang = "es";
             let activeConnections = {};
             let activePeerId = null;
 
@@ -528,9 +525,107 @@
             const messagesContainerWrapper = document.getElementById('messagesContainerWrapper');
             const chatForm = document.getElementById('chatForm');
             const messageInput = document.getElementById('messageInput');
+            const profileNameInput = document.getElementById('profileNameInput');
+            const profileImageInput = document.getElementById('profileImageInput');
 
-        function initPeer() {
+            // Traducciones completas
+            const translations = {
+                es: { profileTitle: "Perfil", nameLabel: "Nombre:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Pantalla", modeNormal: "Modo Normal", modeDark: "Modo Oscuro", modeContrast: "Contraste Alto", fontTitle: "Tipo de Letra", langTitle: "Idioma", welcomeText: "No hay ningún chat seleccionado.<br>Haz clic en el botón **`+`** para unirte a múltiples chats en paralelo.", inputPlaceholder: "Escribe un mensaje..." },
+                en: { profileTitle: "Profile", nameLabel: "Name:", imageLabel: "Profile Picture:", screenModeTitle: "Screen Mode", modeNormal: "Normal Mode", modeDark: "Dark Mode", modeContrast: "High Contrast", fontTitle: "Font Family", langTitle: "Language", welcomeText: "No chat selected.<br>Click the **`+`** button to join multiple parallel chats.", inputPlaceholder: "Type a message..." },
+                pt: { profileTitle: "Perfil", nameLabel: "Nome:", imageLabel: "Foto de perfil:", screenModeTitle: "Modo de Tela", modeNormal: "Modo Normal", modeDark: "Modo Escuro", modeContrast: "Alto Contraste", fontTitle: "Tipo de Letra", langTitle: "Idioma", welcomeText: "Nenhum chat selecionado.<br>Clique no botão **`+`** para iniciar vários chats.", inputPlaceholder: "Digite uma mensagem..." },
+                fr: { profileTitle: "Profil", nameLabel: "Nom :", imageLabel: "Photo de profil :", screenModeTitle: "Mode d'affichage", modeNormal: "Mode Normal", modeDark: "Mode Sombre", modeContrast: "Contraste Élevé", fontTitle: "Police", langTitle: "Langue", welcomeText: "Aucun chat sélectionné.<br>Cliquez sur **`+`** pour discuter.", inputPlaceholder: "Tapez un message..." },
+                it: { profileTitle: "Profilo", nameLabel: "Nome:", imageLabel: "Foto profilo:", screenModeTitle: "Modalità Schermo", modeNormal: "Modale Normale", modeDark: "Modalità Scura", modeContrast: "Alto Contrasto", fontTitle: "Carattere", langTitle: "Lingua", welcomeText: "Nessuna chat selezionata.<br>Clicca **`+`** per chattare.", inputPlaceholder: "Scrivi un messaggio..." },
+                de: { profileTitle: "Profil", nameLabel: "Name:", imageLabel: "Profilbild:", screenModeTitle: "Bildschirmmodus", modeNormal: "Normaler Modus", modeDark: "Dunkler Modus", modeContrast: "Hoher Kontrast", fontTitle: "Schriftart", langTitle: "Sprache", welcomeText: "Kein Chat ausgewählt.<br>Klicken Sie auf **`+`**.", inputPlaceholder: "Nachricht schreiben..." }
+            };
+
+            function setLanguage(lang) {
+                currentLang = lang;
+                localStorage.setItem('chat_lang', lang);
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (translations[lang] && translations[lang][key]) {
+                        el.innerHTML = translations[lang][key];
+                    }
+                });
+                messageInput.placeholder = translations[lang].inputPlaceholder;
+            }
+
+            function applyFont(font) {
+                if (font === 'sans') {
+                    document.documentElement.style.setProperty('--current-font', "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif");
+                    document.documentElement.style.setProperty('--current-font-weight', 'normal');
+                } else if (font === 'serif') {
+                    document.documentElement.style.setProperty('--current-font', '"Georgia", Cambria, "Times New Roman", Times, serif');
+                    document.documentElement.style.setProperty('--current-font-weight', 'normal');
+                } else if (font === 'mono') {
+                    document.documentElement.style.setProperty('--current-font', "Consolas, Monaco, 'Courier New', Courier, monospace");
+                    document.documentElement.style.setProperty('--current-font-weight', 'normal');
+                } else if (font === 'comfortaa') {
+                    document.documentElement.style.setProperty('--current-font', "'Comfortaa', cursive, sans-serif");
+                    document.documentElement.style.setProperty('--current-font-weight', '700');
+                }
+            }
+
+            // Cargar ajustes guardados en localStorage al iniciar
+            window.addEventListener('DOMContentLoaded', () => {
             let savedId = localStorage.getItem('multi_chat_peer_id');
+            let savedName = localStorage.getItem('multi_chat_name');
+            let savedImage = localStorage.getItem('multi_chat_image');
+            let savedTheme = localStorage.getItem('multi_chat_theme');
+            let savedFont = localStorage.getItem('multi_chat_font');
+            let savedLang = localStorage.getItem('multi_chat_lang');
+            let savedChats = localStorage.getItem('multi_chat_history');
+
+            if (savedName) {
+                profileName = savedName;
+                profileNameInput.value = savedName;
+            }
+            if (savedImage) {
+                avatarBtn.style.backgroundImage = `url(${savedImage})`;
+            }
+            if (savedLang) {
+                setLanguage(savedLang);
+            }
+            if (savedTheme) {
+                document.body.classList.remove('dark-mode', 'high-contrast');
+                if (savedTheme === 'dark') document.body.classList.add('dark-mode');
+                if (savedTheme === 'contrast') document.body.classList.add('high-contrast');
+            }
+            if (savedFont) {
+                applyFont(savedFont);
+            }
+            if (savedChats) {
+                try {
+                    let parsed = JSON.parse(savedChats);
+                    // Restauramos estructura básica de historial de mensajes por chat guardados
+                    for (let id in parsed) {
+                        activeConnections[id] = {
+                            conn: null, // Se reconectará si vuelve a entrar o se puede reconectar mediante peer.connect si es necesario
+                            name: parsed[id].name,
+                            lastMessage: parsed[id].lastMessage,
+                            messages: parsed[id].messages
+                        };
+                    }
+                    updateChatListUI();
+                } catch (e) { }
+            }
+
+            initPeer(savedId);
+        });
+
+                function saveHistoryToStorage() {
+                    let serializable = {};
+                    for (let id in activeConnections) {
+                        serializable[id] = {
+                            name: activeConnections[id].name,
+                            lastMessage: activeConnections[id].lastMessage,
+                            messages: activeConnections[id].messages
+                        };
+                    }
+                    localStorage.setItem('multi_chat_history', JSON.stringify(serializable));
+                }
+
+                function initPeer(savedId) {
             peer = savedId ? new Peer(savedId, { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } }) : new Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
 
             peer.on('open', (id) => {
@@ -539,7 +634,6 @@
                 myFullIdBox.textContent = id;
             });
 
-            // Recibir peticiones de múltiples amigos entrantes de forma independiente
             peer.on('connection', (incomingConn) => {
                 registerConnection(incomingConn);
             });
@@ -549,16 +643,15 @@
                 const remoteId = conn.peer;
 
                 if (activeConnections[remoteId]) {
-                    // Si ya existe, aseguramos la referencia
-                    activeConnections[remoteId].conn = conn;
-                } else {
-                    activeConnections[remoteId] = {
-                        conn: conn,
-                        name: "Amigo (" + remoteId.substring(0, 4) + ")",
-                        lastMessage: "Conectado",
-                        messages: []
-                    };
-                }
+                activeConnections[remoteId].conn = conn;
+            } else {
+                activeConnections[remoteId] = {
+                    conn: conn,
+                    name: "Amigo (" + remoteId.substring(0, 4) + ")",
+                    lastMessage: "Conectado",
+                    messages: []
+                };
+            }
 
             conn.on('open', () => {
                 updateChatListUI();
@@ -570,6 +663,7 @@
                 activeConnections[remoteId].messages.push({ sender: 'other', text: data.text, name: data.name });
                 activeConnections[remoteId].lastMessage = data.text;
 
+                saveHistoryToStorage();
                 updateChatListUI();
                 if (activePeerId === remoteId) {
                     appendMessageToDOM('other', data.text, data.name);
@@ -642,10 +736,13 @@
 
             connectBtn.addEventListener('click', () => {
                 let friendId = peerIdInput.value.trim();
-                if (!friendId || activeConnections[friendId]) return;
+            if (!friendId) return;
 
-            let conn = peer.connect(friendId);
-            registerConnection(conn);
+            if (!activeConnections[friendId]) {
+                let conn = peer.connect(friendId);
+                registerConnection(conn);
+            }
+            selectChat(friendId);
             peerIdInput.value = "";
             connectionMenu.classList.remove('active');
         });
@@ -655,55 +752,86 @@
                 let text = messageInput.value.trim();
                 if (!text || !activePeerId) return;
 
-                let chat = activeConnections[activePeerId];
-                chat.messages.push({ sender: 'user', text: text });
-                chat.lastMessage = "Tú: " + text;
+            let chat = activeConnections[activePeerId];
+            chat.messages.push({ sender: 'user', text: text });
+            chat.lastMessage = "Tú: " + text;
 
-                appendMessageToDOM('user', text);
-                messageInput.value = "";
-                updateChatListUI();
+            saveHistoryToStorage();
+            appendMessageToDOM('user', text);
+            messageInput.value = "";
+            updateChatListUI();
 
-                if (chat.conn && chat.conn.open) {
-                    chat.conn.send({
-                        name: profileName,
-                        text: text
-                    });
+            if (chat.conn && chat.conn.open) {
+                chat.conn.send({
+                    name: profileName,
+                    text: text
+                });
+            } else {
+                // Si se recargó la página y se quiere reestablecer la conexión activa
+                chat.conn = peer.connect(activePeerId);
+                chat.conn.on('open', () => {
+                    chat.conn.send({ name: profileName, text: text });
+                });
             }
         });
 
-            // Controles de interfaz (menús)
-            settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); themeMenu.classList.toggle('active'); connectionMenu.classList.remove('active'); });
-            addChatBtn.addEventListener('click', (e) => { e.stopPropagation(); connectionMenu.classList.toggle('active'); themeMenu.classList.remove('active'); });
-            window.addEventListener('click', () => { themeMenu.classList.remove('active'); connectionMenu.classList.remove('active'); });
-        themeMenu.addEventListener('click', (e) => e.stopPropagation());
-        connectionMenu.addEventListener('click', (e) => e.stopPropagation());
-
-            myFullIdBox.addEventListener('click', () => {
-                navigator.clipboard.writeText(myFullIdBox.textContent);
-                alert("¡ID copiado al portapapeles!");
-        });
-
-            document.getElementById('profileNameInput').addEventListener('input', (e) => {
+            // Eventos de guardado para nombre, avatar, temas y letras
+            profileNameInput.addEventListener('input', (e) => {
                 profileName = e.target.value.trim() || "Anónimo";
                 localStorage.setItem('multi_chat_name', profileName);
         });
 
-            document.querySelectorAll('.theme-btn[data-theme]').forEach(btn => {
+            profileImageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const base64Image = event.target.result;
+                        avatarBtn.style.backgroundImage = `url(${base64Image})`;
+                        localStorage.setItem('multi_chat_image', base64Image);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            document.querySelectorAll('.theme-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     let t = btn.getAttribute('data-theme');
+                let f = btn.getAttribute('data-font');
+                let l = btn.getAttribute('data-lang');
+
+                if (t) {
                     document.body.classList.remove('dark-mode', 'high-contrast');
-                if (t === 'dark') document.body.classList.add('dark-mode');
-                if (t === 'contrast') document.body.classList.add('high-contrast');
+                    if (t === 'dark') {
+                        document.body.classList.add('dark-mode');
+                        localStorage.setItem('multi_chat_theme', 'dark');
+                    } else if (t === 'contrast') {
+                        document.body.classList.add('high-contrast');
+                        localStorage.setItem('multi_chat_theme', 'contrast');
+                    } else {
+                        localStorage.setItem('multi_chat_theme', 'normal');
+                    }
+                }
+                if (f) {
+                    applyFont(f);
+                    localStorage.setItem('multi_chat_font', f);
+                }
+                if (l) {
+                    setLanguage(l);
+                }
+                themeMenu.classList.remove('active');
             });
         });
 
-            window.addEventListener('DOMContentLoaded', () => {
-                let savedName = localStorage.getItem('multi_chat_name');
-                if (savedName) {
-                    profileName = savedName;
-                    document.getElementById('profileNameInput').value = savedName;
-            }
-            initPeer();
+            settingsBtn.addEventListener('click', (e) => { e.stopPropagation(); themeMenu.classList.toggle('active'); connectionMenu.classList.remove('active'); });
+            addChatBtn.addEventListener('click', (e) => { e.stopPropagation(); connectionMenu.classList.toggle('active'); themeMenu.classList.remove('active'); });
+            window.addEventListener('click', () => { themeMenu.classList.remove('active'); connectionMenu.classList.remove('active'); });
+            themeMenu.addEventListener('click', (e) => e.stopPropagation());
+            connectionMenu.addEventListener('click', (e) => e.stopPropagation());
+
+            myFullIdBox.addEventListener('click', () => {
+                navigator.clipboard.writeText(myFullIdBox.textContent);
+                alert("¡ID copiado al portapapeles!");
         });
 </script>
 </body>
